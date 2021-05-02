@@ -50,7 +50,9 @@ CODE_00F741:        10 03         BPL CODE_00F746           ;>if not past the le
 		.LockTheCamera
 		
 		.ScrollToInBounds
+			;check if the CAM has reached in-bounds
 			
+			;if not, scroll the cam towards it
 		.Vanilla
 			LDA $02
 			CLC
