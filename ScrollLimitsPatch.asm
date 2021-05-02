@@ -67,7 +67,7 @@
 			ADC $1A
 			CMP !Freeram_ScrollLimitsLeftBorder	;\left boundary
 			BPL ..CODE_00F746			;|
-			LDA.W #$0000				;/
+			LDA !Freeram_ScrollLimitsLeftBorder	;/
 			
 			..CODE_00F746
 			STA $1A					;>Set screen X position
