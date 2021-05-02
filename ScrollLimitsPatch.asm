@@ -34,47 +34,51 @@
 	
 	HorizontalLevelLimits:	;>JML from $00F73C
 		;A: 16-bit
-
-CODE_00F73C:        A5 02         LDA $02                   ;\Distance from the scroll lines to mario
-CODE_00F73E:        18            CLC                       ;|going from the left edge of the screen...
-CODE_00F73F:        65 1A         ADC RAM_ScreenBndryXLo    ;/
-CODE_00F741:        10 03         BPL CODE_00F746           ;>if not past the left edge, good.
-
-
 		LDA !Freeram_ScrollLimitsFlag
 		AND.w #$00FF
-		BEQ .Vanilla
-		CMP #$0001
-		BEQ .ScrollToInBounds
-		
-		.LockTheCamera
-		
-		.ScrollToInBounds
-			;check if the CAM has reached in-bounds
-			
-			;if not, scroll the cam towards it
+		BNE .CustomLimits
 		.Vanilla
 			LDA $02
 			CLC
 			ADC $1A
-			BPL ..CODE_00F746
-			LDA.W #$0000              ;\Prevent screen from scrolling past left edge of level.
+			;CMP #$0000			;\
+			BPL ..CODE_00F746		;|left boundary
+			LDA.W #$0000			;/
 			
 			..CODE_00F746
-			STA RAM_ScreenBndryXLo    ;/(this is how Mario moves the screen horizontally, horizontal levels only)
-			LDA $5E                   ;\Prevent screen from scrolling past the
-			DEC A                     ;|last screen in a horizontal level.
-			XBA                       ;|
-			AND.W #$FF00              ;|
-			BPL ..CODE_00F754         ;|
-			LDA.W #$0080              ;|
+			STA $1A				;>Set screen X position
+			LDA $5E				;\Deal with right boundary
+			DEC A				;|
+			XBA				;|
+			AND.W #$FF00			;|
+			BPL ..CODE_00F754		;|
+			LDA.W #$0080			;|
 			
 			..CODE_00F754
-			CMP RAM_ScreenBndryXLo    ;|
-			BPL CODE_00F75A           ;|
-			STA RAM_ScreenBndryXLo    ;|
+			CMP $1A				;|
+			BPL ..CODE_00F75A		;|
+			STA $1A				;/
 			
 			..CODE_00F75A:
+			BRA .Done
+		.CustomLimits
+			LDA $02
+			CLC
+			ADC $1A
+			CMP !Freeram_ScrollLimitsLeftBorder	;\left boundary
+			BPL ..CODE_00F746			;|
+			LDA.W #$0000				;/
 			
-			..Done
+			..CODE_00F746
+			STA $1A					;>Set screen X position
+			LDA !Freeram_ScrollLimitsLeftBorder	;\Deal with right boundary
+			CLC					;|
+			ADC !Freeram_ScrollLimitsAreaWidth	;|
+			CMP $1A					;|!Freeram_ScrollLimitsLeftBorder + !Freeram_ScrollLimitsAreaWidth = Right_boundary
+			BPL ..CODE_00F75A			;| if Right_boundary >= ScreenXPos (or ScreenXPos < Right_boundary), skip
+			STA $1A					;/>Limit rightwards position.
+			
+			..CODE_00F75A:
+		.Done
 			JML $00F79D
+		
