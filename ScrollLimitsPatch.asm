@@ -29,6 +29,9 @@
 	;Horizontal level
 		org $00F73C
 		autoclean JML HorizontalLevelLimits
+	;Both horiz and vert
+		org $00F893
+		autoclean JML VerticalScrollingLimits
 ;Main code
 	freecode
 	
@@ -81,4 +84,47 @@
 			..CODE_00F75A:
 		.Done
 			JML $00F79D
-		
+	VerticalScrollingLimits:	;>JML from $00F893
+			PHA
+			LDA !Freeram_ScrollLimitsFlag
+			AND #$00FF
+			BNE .CustomLimits
+			
+			.Vanilla
+				PLA
+				ADC $1C
+				CMP.w $00F6AD,y
+				BPL ..CODE_00F89D
+				LDA.w $00F6AD,y
+				
+				..CODE_00F89D
+				STA $1C
+				LDA $04
+				CMP $1C
+				BPL ..Return00F8AA
+				STA $1C
+				SEP #$20
+				STZ $13F1|!addr
+				REP #$20		;>Just in case
+				..Return00F8AA
+				JML $00F8AA
+			.CustomLimits
+				PLA
+				ADC $1C
+				CMP !Freeram_ScrollLimitsTopBorder	;\Top limit
+				BPL ..InBound
+				..PastTheTop
+					LDA !Freeram_ScrollLimitsTopBorder
+				..InBound
+					STA $1C				;/
+				LDA !Freeram_ScrollLimitsTopBorder	;\Bottom limit
+				CLC					;|
+				ADC !Freeram_ScrollLimitsAreaHeight	;|
+				CMP $1C					;|
+				BPL .Done				;|
+				STA $1C					;/
+				SEP #$20
+				STZ $13F1|!addr
+				REP #$20		;>Just in case
+			.Done
+				JML $00F8AA
