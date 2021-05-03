@@ -44,5 +44,15 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<li>SMW's horizontal scrolling is instant-- that it simply takes Mario's X position, take various calculations handled at <kbd>$00F73C</kbd> (which also handles the left and right limits), unlike vertical scrolling,
 	which is handled at <kbd>$00F88F</kbd>, offsets the Y position gradually towards the player. Therefore, if these boundaries get turned off, and the screen jumps into that &ldquo;opened area&rdquo;, tile loading graphic glitches
 	can occur.</li>
+	<li>RAM address <kbd>$13F2</kbd> is freed.</li>
+</ul>
+<h2>Required patches</h2>
+<ul>
+	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=13675">Sprite scroll fix</a></li>: The system to check which scroll direction sprites should be able to spawn (<kbd>$55</kbd>/<kbd>$56</kbd>) is flawed, that it
+	check which side the player is located relative to the &ldquo;static camera region&rdquo; (<kbd>$142A</kbd>), rather than the actual scrolling of the screen.
+</ul>
+<h2>Interesting facts</h2>
+<ul>
+	<li>When horizontal and/or vertical scrolling are disabled (<kbd>$1411</kbd> and/or <kbd>$1412</kbd>), the boundaries are no longer running (it will not set the XY coordinate of the screen to place it back in bounds).</li>
 </ul>
 <h2>Getting started</h2>

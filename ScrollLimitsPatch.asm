@@ -1,7 +1,24 @@
 ;Note: Don't patch this if you've installed scrolling-related patches like:
 ;-Center Scroll
 ;-Vertical Camera Panning
-;Since they both have code that set the scroll limits.
+;Since they both have code that set the scroll limits. You must edit those
+;patches on the code that handles the scrolling limits to use the RAM
+;defined:
+;-!Freeram_ScrollLimitsFlag
+;-!Freeram_ScrollLimitsAreaHeight
+;-!Freeram_ScrollLimitsAreaWidth
+;-!Freeram_ScrollLimitsLeftBorder
+;-!Freeram_ScrollLimitsTopBorder
+;
+;This patch MERELY edits the scroll limits, other stuff such as
+;the “flip-screen” effect (megaman, metroid, etc.) are handled
+;under uberasm tool.
+
+
+;Note: The scrolling flags ($1411 for horizontal and $1412 for vertical), when set to disable ($00), the
+;bounds code are not executed, meaning they do not bound the screen, since the code to position the screen
+;offset from the player also have a bound handler.
+
 
 ;Sa-1 check
 	!dp = $0000
