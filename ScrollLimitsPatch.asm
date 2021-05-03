@@ -29,7 +29,7 @@
 	;Horizontal level
 		org $00F73C
 		autoclean JML HorizontalLevelLimits
-	;Both horiz and vert
+	;Both horiz and vert's vertical scrolling
 		org $00F893
 		autoclean JML VerticalScrollingLimits
 ;Main code

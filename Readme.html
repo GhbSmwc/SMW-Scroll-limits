@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<style>
+			html {
+			background-color: #000207;
+			color: white;
+			font-family: sans-serif;
+			}
+			
+			table, th, td {
+			border: 1px solid white;
+			border-collapse: collapse;
+			}
+			
+			span.NoLineBreak {
+				white-space: nowrap;
+			}
+			
+			abbr{cursor: help;}
+			img.img-hor {
+				-moz-transform: scaleX(-1);
+				-o-transform: scaleX(-1);
+				-webkit-transform: scaleX(-1);
+				transform: scaleX(-1);
+				filter: FlipH;
+				-ms-filter: "FlipH";
+			}
+		</style>
+	</head>
+<body>
+<center><h1>Custom scroll limits</h1></center>
+<h2>Introduction</h2>
+<p>This ASM package enables you to set custom boundaries of your level</p>
+
+<p>Normally, you would think this is redundant because there exist other codes that stops the screen scrolling at a certain XY position, say one
+found in the <a href="https://www.smwcentral.net/?p=viewthread&t=62286">ASM library</a>, however this ASM package offers more flexibility, and that
+you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
+<h2>Note before use</h2>
+<ul>
+	<li>This patch obviously will hijack scrolling related codes (<kbd>$00F73C</kbd> (horizontal level limits for left and right borders), <kbd>$00F893</kbd>
+	(horizontal and vertical limits for top and bottom borders)). If you wish to have other scrolling-related patches such as my <a href="https://www.smwcentral.net/?p=section&a=details&id=26861">Center scroll patch</a>
+	or <a href="https://www.smwcentral.net/?p=section&a=details&id=17737">Vertical Camera Panning</a>. In these cases, you'll need to merge the ASM files (more specifically, not to use SMW's default scroll limits but
+	use this custom scroll limits patch's RAM that controls the limits)</li>
+	<li>SMW's horizontal scrolling is instant-- that it simply takes Mario's X position, take various calculations handled at <kbd>$00F73C</kbd> (which also handles the left and right limits), unlike vertical scrolling,
+	which is handled at <kbd>$00F88F</kbd>, offsets the Y position gradually towards the player. Therefore, if these boundaries get turned off, and the screen jumps into that &ldquo;opened area&rdquo;, tile loading graphic glitches
+	can occur.</li>
+</ul>
+<h2>Getting started</h2>
