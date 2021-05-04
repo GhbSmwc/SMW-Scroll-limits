@@ -21,29 +21,37 @@ ScrollLimitMain:
 			JSL CheckScreenReachDestination
 			BCS .ReachedDestination
 		.Drag
-			STZ $1411|!addr					;\Disable scrolling
-			STZ $1412|!addr					;/
-			REP #$20
-			LDA $1462|!addr					;\Setup aiming
-			SEC						;|
-			SBC !Freeram_FlipScreenXDestination		;|
-			STA $00						;|
-			LDA $1464|!addr					;|
-			SEC						;|
-			SBC !Freeram_FlipScreenYDestination		;|
-			STA $02						;|
-			SEP #$20
-			LDA.b #!Setting_ScrollLimits_FlipScreenSpeed	;/
-			JSL Aiming
-			LDA $00						;\Get XY speed
-			STA !Freeram_FlipScreenXYSpeedAndFraction	;|
-			LDA $02						;|
-			STA !Freeram_FlipScreenXYSpeedAndFraction+2	;/
-			LDX #$00					;\Apply XY speed to make screen move
-			JSL DisplaceScreenSpeed				;|
-			LDX #$02					;|
-			JSL DisplaceScreenSpeed				;/
-			RTL
+			..AdjustTarget
+				;This essentially functions like a clamp function,
+				;making sure the target is the closest to the current
+				;screen as possible as to:
+				;-Prevent screen jumping horizontally, espically when it
+				; CAN be placed on mario when the border turns off.
+				JSL ClampDestinationPosition
+			..MoveScreen
+				STZ $1411|!addr					;\Disable scrolling
+				STZ $1412|!addr					;/
+				REP #$20
+				LDA $1462|!addr					;\Setup aiming
+				SEC						;|
+				SBC !Freeram_FlipScreenXDestination		;|
+				STA $00						;|
+				LDA $1464|!addr					;|
+				SEC						;|
+				SBC !Freeram_FlipScreenYDestination		;|
+				STA $02						;|
+				SEP #$20
+				LDA.b #!Setting_ScrollLimits_FlipScreenSpeed	;/
+				JSL Aiming
+				LDA $00						;\Get XY speed
+				STA !Freeram_FlipScreenXYSpeedAndFraction	;|
+				LDA $02						;|
+				STA !Freeram_FlipScreenXYSpeedAndFraction+2	;/
+				LDX #$00					;\Apply XY speed to make screen move
+				JSL DisplaceScreenSpeed				;|
+				LDX #$02					;|
+				JSL DisplaceScreenSpeed				;/
+				RTL
 		.ReachedDestination
 			wdm
 			LDA #$01				;\Reenable scrolling
@@ -58,6 +66,52 @@ ScrollLimitMain:
 			STA $1464|!addr				;/
 			SEP #$20
 			RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Adjust the target position to be centered with the player or be in-bounds
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ClampDestinationPosition:
+	REP #$20
+	.HorizontalClamp
+		LDA $94
+		SEC
+		SBC $142A|!addr
+		STA !Freeram_FlipScreenXDestination
+		..LeftBorderCheck
+			CMP !Freeram_ScrollLimitsLeftBorder
+			BPL ...NotPassingLeftBorder
+			LDA !Freeram_ScrollLimitsLeftBorder
+			STA !Freeram_FlipScreenXDestination
+			...NotPassingLeftBorder
+		..RightBorderCheck
+			LDA !Freeram_ScrollLimitsLeftBorder		;\Right border
+			CLC						;|
+			ADC !Freeram_ScrollLimitsAreaWidth		;/
+			CMP !Freeram_FlipScreenXDestination
+			BPL ...NotPassingRightBorder
+			STA !Freeram_FlipScreenXDestination
+			...NotPassingRightBorder
+	.VerticalClamp
+		LDA $96
+		SEC
+		SBC #$0070
+		STA !Freeram_FlipScreenYDestination
+		..TopBorderCheck
+			CMP !Freeram_ScrollLimitsTopBorder
+			BPL ...NotPassingTopBorder
+			LDA !Freeram_ScrollLimitsTopBorder
+			STA !Freeram_FlipScreenYDestination
+			...NotPassingTopBorder
+		..BottomBorderCheck
+			LDA !Freeram_ScrollLimitsTopBorder		;\Right border
+			CLC						;|
+			ADC !Freeram_ScrollLimitsAreaHeight		;/
+			CMP !Freeram_FlipScreenYDestination
+			BPL ...NotPassingTopBorder
+			STA !Freeram_FlipScreenYDestination
+			...NotPassingTopBorder
+	.Done
+		SEP #$20
+		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Check if screen have reached destination.
 ;;Check if the screen is close enough (within 4 pixels from destination).
