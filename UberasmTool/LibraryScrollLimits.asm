@@ -17,9 +17,6 @@ ScrollLimitMain:
 	.Done
 		RTL
 	.DragScreenToDestination
-		.CheckIfScreenAlreadyReachedDest
-			JSL CheckScreenReachDestination
-			BCS .ReachedDestination
 		.Drag
 			..AdjustTarget
 				;This essentially functions like a clamp function,
@@ -28,6 +25,8 @@ ScrollLimitMain:
 				;-Prevent screen jumping horizontally, espically when it
 				; CAN be placed on mario when the border turns off.
 				JSL ClampDestinationPosition
+				JSL CheckScreenReachDestination
+				BCS .ReachedDestination
 			..MoveScreen
 				STZ $1411|!addr					;\Disable scrolling
 				STZ $1412|!addr					;/
