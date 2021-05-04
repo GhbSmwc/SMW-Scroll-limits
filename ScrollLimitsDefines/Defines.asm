@@ -70,5 +70,7 @@
  ;Are you using center scroll patch? (0 = no, 1 = yes)
   !Setting_ScrollLimits_UsingCenterScroll = 0
  ;Flip screen speed, approximately (because it uses an aiming routine)
- ;1/16th pixel per frame.
+ ;1/16th pixel per frame. Use only $01-$7F.
   !Setting_ScrollLimits_FlipScreenSpeed = $60
+ ;Y position of a point the screen tries to center with the player vertically
+  !Setting_ScrollLimits_PlayerYCenter = $0070

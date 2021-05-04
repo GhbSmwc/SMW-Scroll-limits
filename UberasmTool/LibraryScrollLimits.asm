@@ -69,11 +69,56 @@ ScrollLimitMain:
 ;;Adjust the target position to be centered with the player or be in-bounds
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ClampDestinationPosition:
+	;Note to self
+	; $142A = Static cam region (relative to camera's left edge (origin X position)), center.
+	; $142C = Static cam region (relative to camera's left edge (origin X position)), left edge (-$000C)
+	; $142E = Static cam region (relative to camera's left edge (origin X position)), right edge (+$000C)
+	;
+	;
+	; It then uses $142A-$142F
+	; To mimic the way how SMW's horizontal scrolling works
 	REP #$20
 	.HorizontalClamp
-		LDA $94
-		SEC
-		SBC $142A|!addr
+		if !Setting_ScrollLimits_UsingCenterScroll == 0
+			LDA $94
+			SEC
+			SBC $1462|!addr		;>A is now player X pos on-screen (MarioXPosOnScrn)
+			SEC
+			SBC $142C|!addr		;>A is now player X pos, relative to $142C (MarioXPosOnStaticCam)
+			.ClampMarioIntoStaticCam
+			;Explanation of how I pull this off:
+			;-The shortest distance between mario is MarioXPosOnScrn to $142C
+			;-The longest distance between mario is MarioXPosOnScrn to $142E
+			;-If you take $94, subtract by $1462, you'll get the player's X pos relative to screen border (MarioXPosOnScrn). The distance between the
+			; left edge and Mario.
+			;-$142E, relative to $142C is #$0018, the width of the static camera region
+			;-If you take MarioXPosOnScrn, and subtract by $142C, it is now the X position relative to the left edge of static cam (MarioXPosOnStaticCam).
+			;--Since Mario is not allowed to be outside the static cam region when the camera is not on the level edge (which will
+			;  cause the screen to jump and show glitched graphics), MarioXPosOnStaticCam cannot be less than $0000 and more than $0018, which are the
+			;  $142C and $142E offset by +/-$000C.
+			;Therefore we are trying to solve the length of the horizontal line between Mario and the left edge of the screen:
+			; ScrnDestination = RAM_94 - (RAM_142C + MarioXPosOnStaticCam)
+			BPL ..NotNegative	;>If PlayerXPos142C is negative, bottom this out to 0
+			..PreventSnapLeft
+				LDA #$0000
+				BRA ..SetPlayerXPos142C
+			..NotNegative
+				CMP #$0018		;>Right edge of static cam region
+				BMI ..SetPlayerXPos142C
+			..PreventSnapRight
+				LDA #$0018
+			..SetPlayerXPos142C
+				STA $00
+				LDA $94
+				SEC
+				SBC $142C|!addr
+				SEC
+				SBC $00
+		else
+			LDA $94
+			SEC
+			SBC $142A|!addr
+		endif
 		STA !Freeram_FlipScreenXDestination
 		..LeftBorderCheck
 			CMP !Freeram_ScrollLimitsLeftBorder
@@ -92,7 +137,7 @@ ClampDestinationPosition:
 	.VerticalClamp
 		LDA $96
 		SEC
-		SBC #$0070
+		SBC #!Setting_ScrollLimits_PlayerYCenter
 		STA !Freeram_FlipScreenYDestination
 		..TopBorderCheck
 			CMP !Freeram_ScrollLimitsTopBorder
