@@ -22,11 +22,11 @@ ScrollLimitMain:
 				;This essentially functions like a clamp function,
 				;making sure the target is the closest to the current
 				;screen as possible as to:
-				;-Prevent screen jumping horizontally, espically when it
-				; CAN be placed on mario when the border turns off.
-				JSL ClampDestinationPosition
-				JSL CheckScreenReachDestination
-				BCS .ReachedDestination
+				;-Prevent screen jumping horizontally, especially when it
+				; CAN be placed on Mario without being out of bounds.
+				JSL ClampDestinationPosition			;>Get valid target position (place on mario, unless that is out of bounds, then place target in bounds closest)
+				JSL CheckScreenReachDestination			;\Check if screen have gotten close enough to that target
+				BCS .ReachedDestination				;/
 			..MoveScreen
 				STZ $1411|!addr					;\Disable scrolling
 				STZ $1412|!addr					;/
