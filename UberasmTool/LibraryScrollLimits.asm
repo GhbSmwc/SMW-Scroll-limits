@@ -6,8 +6,9 @@
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
 ScrollLimitMain:
-	LDA $13D4|!addr
-	ORA $71
+	LDA $13D4|!addr		;>Pause flag
+	ORA $71			;>Mario action
+	ORA $1426|!addr		;>Seems like either transferring from $1A-$1D to $1462-$1465 (or vice versa) gets suspended during a message box.
 	BNE .Done
 	LDA !Freeram_ScrollLimitsFlag
 	BEQ .Done
