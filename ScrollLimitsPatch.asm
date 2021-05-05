@@ -45,14 +45,17 @@
 ;Hijacks
 	;Horizontal level
 		org $00F73C
-		autoclean JML HorizontalLevelLimits
+		autoclean JML HorizontalLevelHorizontalLimits
+	;Vertical level
+		org $00F789
+		autoclean JML VerticalLevelHorizontalScroll
 	;Both horiz and vert's vertical scrolling
 		org $00F893
 		autoclean JML VerticalScrollingLimits
 ;Main code
 	freecode
 	
-	HorizontalLevelLimits:	;>JML from $00F73C
+	HorizontalLevelHorizontalLimits:	;>JML from $00F73C
 		;A: 16-bit
 		LDA !Freeram_ScrollLimitsFlag
 		AND.w #$00FF
@@ -101,7 +104,50 @@
 			..CODE_00F75A:
 		.Done
 			JML $00F79D
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	VerticalLevelHorizontalScroll:		;>JML from $00F789
+		LDA !Freeram_ScrollLimitsFlag
+		AND #$00FF
+		BNE .CustomLimits
+	.Vanilla
+		LDA $02
+		CLC
+		ADC $1A
+		BPL .CODE_00F793
+		LDA #$0000
+		
+		.CODE_00F793
+		CMP #$0101
+		BMI .CODE_00F79B
+		
+		LDA #$0100
+		.CODE_00F79B
+		STA $1A
+		BRA .Done
+	.CustomLimits
+		LDA $02
+		CLC
+		ADC $1A
+		..LeftBorderCheck
+			CMP !Freeram_ScrollLimitsLeftBorder
+			BPL ...NotExceedingLeft
+			...ExceedingLeft
+			LDA !Freeram_ScrollLimitsLeftBorder
+			...NotExceedingLeft
+			STA $1A
+		..RightBorderCheck
+			LDA !Freeram_ScrollLimitsLeftBorder
+			CLC
+			ADC !Freeram_ScrollLimitsAreaWidth
+			CMP $1A
+			BPL ...NotExceedingRight		;>If border to the right of screen or screen to the left, it is fine.
+			STA $1A
+			...NotExceedingRight
+		.Done
+			JML $00F79D
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	VerticalScrollingLimits:	;>JML from $00F893
+			;A: 16-bit
 			PHA
 			LDA !Freeram_ScrollLimitsFlag
 			AND #$00FF
