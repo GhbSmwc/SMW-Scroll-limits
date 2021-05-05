@@ -21,8 +21,12 @@
    else
     !Freeram_ScrollLimitsTopBorder = $62
    endif
-  ;[2 bytes each] Dimensions (extends rightwards and downwards when they increase
-  ;the bottom and right are calculated: XY_Max_Value = XYTopOrLeft + WidthOrHeight)
+  ;[2 bytes each] Dimensions (extends rightwards and downwards when you increase
+  ;the width and height.) NOTE: This is how far, the top-left of the screen can move
+  ;from the top-left of the scroll limits. Therefore the right and bottom edge of
+  ;the screen extends by 256/224 pixels beyond here.
+  ;(Example: A room width of $0000 means 256-pixel wide area)
+  ;It is calculated: XY_Max_Value = XYTopOrLeft + WidthOrHeight.
    ;Width of the area 
     if !sa1 == 0
      !Freeram_ScrollLimitsAreaWidth = $0F5E
