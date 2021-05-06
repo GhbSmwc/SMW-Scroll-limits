@@ -3,6 +3,7 @@
  ;$00 = Off (scroll within the main level limits)
  ;$01 = On
  ;$02 = Camera gets scroll into bounds.
+ ;$03 = Same as above but freezes sprite by setting $9D.
   if !sa1 == 0
    !Freeram_ScrollLimitsFlag = $58
   else

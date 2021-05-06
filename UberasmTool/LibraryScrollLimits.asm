@@ -7,12 +7,13 @@ incsrc "../ScrollLimitsDefines/Defines.asm"
 
 ScrollLimitMain:
 	LDA $13D4|!addr		;>Pause flag
-	ORA $71			;>Mario action
 	ORA $1426|!addr		;>Seems like either transferring from $1A-$1D to $1462-$1465 (or vice versa) gets suspended during a message box.
 	BNE .Done
 	LDA !Freeram_ScrollLimitsFlag
 	BEQ .Done
 	CMP #$02
+	BEQ .DragScreenToDestination
+	CMP #$03
 	BEQ .DragScreenToDestination
 	
 	.Done
@@ -29,6 +30,16 @@ ScrollLimitMain:
 				JSL CheckScreenReachDestination			;\Check if screen have gotten close enough to that target
 				BCS .ReachedDestination				;/
 			..MoveScreen
+				...Freeze
+					LDA !Freeram_ScrollLimitsFlag
+					CMP #$03
+					BNE ....ScrollWithoutFreeze
+					LDA #$0B
+					STA $71
+					STA $9D					;>Freeze
+					STA $13FB|!addr
+					....ScrollWithoutFreeze
+				
 				STZ $1411|!addr					;\Disable scrolling
 				STZ $1412|!addr					;/
 				REP #$20
@@ -53,18 +64,25 @@ ScrollLimitMain:
 				JSL DisplaceScreenSpeed				;/
 				RTL
 		.ReachedDestination
-			wdm
+			..Unfreeze
+				LDA !Freeram_ScrollLimitsFlag
+				CMP #$03
+				BNE ...NotSetToFrozen
+				STZ $9D
+				STZ $71
+				STZ $13FB|!addr
+				...NotSetToFrozen
 			LDA #$01				;\Reenable scrolling
 			STA $1411|!addr				;|
 			STA $1412|!addr				;/
-			LDA #$01				;\We're done scrolling
-			STA !Freeram_ScrollLimitsFlag		;/
 			REP #$20
 			LDA !Freeram_FlipScreenXDestination	;\Set screen position to destination
 			STA $1462|!addr				;|in case off by few pixels.
 			LDA !Freeram_FlipScreenYDestination	;|
 			STA $1464|!addr				;/
 			SEP #$20
+			LDA #$01				;\Reset itself so that this (block of code to reset state) does not run every frame.
+			STA !Freeram_ScrollLimitsFlag		;/
 			RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Adjust the target position to be centered with the player or be in-bounds

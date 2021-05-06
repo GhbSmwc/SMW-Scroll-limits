@@ -43,6 +43,11 @@
 ;Get defines
 	incsrc "ScrollLimitsDefines/Defines.asm"
 ;Hijacks
+	;Make uberasm tool to truely be able to set $9D to nonzero value and without
+	;messing up the HDMA
+		org $00C5CE			;\fix hdma issues (like message box) when setting
+		autoclean JSL FixHDMA		;/$7E0071 to #$0B ($00cde8 constantly sets $9D to $00 when $71 is $00.).
+		NOP #4
 	;Horizontal level
 		org $00F73C
 		autoclean JML HorizontalLevelHorizontalLimits
@@ -54,7 +59,19 @@
 		autoclean JML VerticalScrollingLimits
 ;Main code
 	freecode
+	FixHDMA: ;>JSL from $00C5CE
+		LDA $0D9B|!addr
+		CMP #$C1
+		BNE .NormalLevel
 	
+		.BowserFight
+			;Restore code
+			STZ.W $0D9F|!addr		;>no HDMA!
+			LDA.B #$01			;\
+			STA.W $1B88|!addr		;/ message box is expanding
+	
+		.NormalLevel
+			RTL
 	HorizontalLevelHorizontalLimits:	;>JML from $00F73C
 		;A: 16-bit
 		LDA !Freeram_ScrollLimitsFlag

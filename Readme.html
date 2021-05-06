@@ -46,8 +46,8 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	can occur.</li>
 	<li>RAM address <kbd>$13F2</kbd> is no longer cleared by <kbd>$00F8A7</kbd>.</li>
 	<li>Anytime you want to trigger a &ldquo;flip screen&rdquo; effect, I <b>highly</b> recommend setting <kbd>$1411</kbd> and <kbd>$1412</kbd> to zero (disable horizontal and vertical scrolling). Even though uberasm tool already
-	STZs it, if you don't disable horizontal scrolling and your code is executed, then runs <kbd>$00F70D</kbd> or <kbd>$00F75C</kbd>, before executing uberasm tool's gamemode 14, SMW's horizontal will, for 1 frame, assume
-	that horizontal scrolling is enabled, and does its default action and may causes scrolling issues.</li>
+	STZs it, if you don't disable horizontal scrolling and your code is executed, then runs <kbd>$00F70D</kbd> or <kbd>$00F75C</kbd>, before executing uberasm tool's gamemode 14, screen-jumping (screen changes position instantly
+	and result graphical glitches) can still occur</li>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go left past the screen $00 or go right past the last
 	screen. Autoscroll generators have done this.</li>
 </ul>
