@@ -42,10 +42,18 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	or <a href="https://www.smwcentral.net/?p=section&a=details&id=17737">Vertical Camera Panning</a>. In these cases, you'll need to merge the ASM files (more specifically, not to use SMW's default scroll limits but
 	use this custom scroll limits patch's RAM that controls the limits)</li>
 	<li>SMW's horizontal scrolling is instant-- that it simply takes Mario's X position, take various calculations handled at <kbd>$00F73C</kbd> (which also handles the left and right limits), unlike vertical scrolling,
-	which is handled at <kbd>$00F88F</kbd>, offsets the Y position gradually towards the player. Therefore, if these boundaries get turned off, and the screen jumps into that &ldquo;opened area&rdquo;, tile loading graphic glitches
-	can occur.</li>
+	which that is handled at <kbd>$00F88F</kbd>, horizontal scrolling <b>instantly</b> sets the screen X position within the level rather than gradually incrementing/decrementing it. So these situations should be avoided that causes
+	layer 1 graphic glitches due to not giving it frames to load the columns of 16x16 tiles:
+		<ul>
+			<li>Teleporting the player, as in taking the player's X position (<kbd>$94</kbd>), add or subtract by some large number that results the player being &ldquo;teleported&rdquo; in long distances.</li>
+			<li>Have horizontal scrolling disabled (<kbd>$1411</kbd> set to $00), then enable horizontal scrolling while the player is outside the static camera region. This will cause the camera to jump to be centered
+			with the player</li>
+		</ul>
+	
+	</li>
 	<li>RAM address <kbd>$13F2</kbd> is no longer cleared by <kbd>$00F8A7</kbd>.</li>
-	<li>Anytime you want to trigger a &ldquo;flip screen&rdquo; effect, I <b>highly</b> recommend setting <kbd>$1411</kbd> and <kbd>$1412</kbd> to zero (disable horizontal and vertical scrolling). Even though uberasm tool already
+	<li>Anytime you want to trigger a &ldquo;<abbr title="The effect you see in Megaman games, areas separated by scroll limits that the screen will not go past unless the player triggers something like opening a door or touching the edge of an area">flip screen</abbr>&rdquo;
+	effect, I <b>highly</b> recommend setting <kbd>$1411</kbd> and <kbd>$1412</kbd> to zero (disable horizontal and vertical scrolling). Even though uberasm tool already
 	STZs it, if you don't disable horizontal scrolling and your code is executed, then runs <kbd>$00F70D</kbd> or <kbd>$00F75C</kbd>, before executing uberasm tool's gamemode 14, screen-jumping (screen changes position instantly
 	and result graphical glitches) can still occur</li>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go left past the screen $00 or go right past the last
@@ -56,8 +64,34 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=13675">Sprite scroll fix</a>: The system to check which scroll direction sprites should be able to spawn (<kbd>$55</kbd>/<kbd>$56</kbd>) is flawed, that it
 	check which side the player is located relative to the &ldquo;static camera region&rdquo; (<kbd>$142A</kbd>), rather than the actual scrolling of the screen.</li>
 </ul>
+<h2>Recommended patches</h2>
+<ul>
+	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a>: Useful if you want such triggers that would trigger the flip-screen effect by touching the very edges of the screen, and also
+	prevent potential deaths caused by being at those edges of the screen.</li>
+</ul>
 <h2>Interesting facts</h2>
 <ul>
-	<li>When horizontal and/or vertical scrolling are disabled (<kbd>$1411</kbd> and/or <kbd>$1412</kbd>), the boundaries are no longer running (it will not set the XY coordinate of the screen to place it back in bounds).</li>
+	<li>When horizontal and/or vertical scrolling are disabled (<kbd>$1411</kbd> and/or <kbd>$1412</kbd>), the boundaries (left or right for horizontal, top and bottom for vertical) are no longer running (it will not set the XY coordinate of
+	the screen to place it back in bounds).</li>
 </ul>
 <h2>Getting started</h2>
+	<ol>
+		<li>Defines</li>
+		<ol>
+			<li>Open <kbd>SMW-Scroll-limits/ScrollLimitsDefines/Defines.asm</kbd>, and make any necessary changes on it. There is a very high chance you'll need to do this if you have other ASM resources that uses freeram as well, as they
+			tend to &ldquo;overlap&rdquo; with the default RAMs the patch provided here uses.</li>
+		</ol>
+		<li>Patches</li>
+		<ol>
+			<li>Before you patch <kbd>ScrollLimitsPatch.asm</kbd> or other patches related to scrolling, open <kbd>ScrollLimitsPatch.asm</kbd> AND the other patches (specifically if they hijack scrolling-related code) and see the
+			<kbd>org $xxxxxx</kbd> would conflict. If they do, you'll need to merge them and potentially need to learn a little bit of ASM.<br><br>
+			
+			<kbd>ScrollLimitsPatch.asm</kbd> just modifies the behavior how scrolling limits work. If you say, install my &ldquo;Center Scroll&rdquo; patch, for example, edit the center scroll patch's scroll limits so that it first checks
+			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works.</li>
+		</ol>
+		<li>Uberasm tool (flip screen effect)</li>
+		<ol>
+			<li>Placeholder</li>
+		</ol>
+	
+	</ol>
