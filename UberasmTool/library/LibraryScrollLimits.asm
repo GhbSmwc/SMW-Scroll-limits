@@ -65,6 +65,8 @@ ScrollLimitMain:
 				JSL DisplaceScreenSpeed				;|
 				LDX #$02					;|
 				JSL DisplaceScreenSpeed				;/
+				JSL CheckScreenReachDestination			;\After moving the screen, snap if reached destination
+				BCS .ReachedDestination				;/as to prevent 1-frame going past target.
 				RTL
 		.ReachedDestination
 			..Unfreeze
