@@ -40,37 +40,50 @@
     else
      !Freeram_ScrollLimitsAreaHeight = $6F60
     endif
-  ;[2 bytes each] Screen scroll target position
-  ;This is needed for “flip screen” effect seen in games like Megaman or metroid,
-  ;it holds the value of the destination position the screen to scroll towards.
-  ;It is also used when the screen tries to “revert” towards the player, to avoid
-  ;the screen jumping and showing unloaded layer 1 graphics.
-   ;X position
-    if !sa1 == 0
-     !Freeram_FlipScreenXDestination = $0F62
-    else
-     !Freeram_FlipScreenXDestination = $6F62
-    endif
-   ;Y position
-    if !sa1 == 0
-     !Freeram_FlipScreenYDestination = $0F64
-    else
-     !Freeram_FlipScreenYDestination = $6F64
-    endif
-  ;These makes the screen's scrolling during a flip effect
-  ;move similar to how $7B/$7D works, as well as the fixed point
-  ;coordinates that $13DA/$13DC. This also enables diagonal scrolling
-  ;similar to how Celeste's flip screen works.
-   ;[4 bytes] X and Y speed and fraction
-   ;+$00 X speed
-   ;+$01 fraction X position
-   ;+$02 Y speed
-   ;+$03 fraction Y position
-     if !sa1 == 0
-      !Freeram_FlipScreenXYSpeedAndFraction = $0F66
-     else
-      !Freeram_FlipScreenXYSpeedAndFraction = $6F66
-     endif
+ ;[2 bytes each] Screen scroll target position
+ ;This is needed for “flip screen” effect seen in games like Megaman or metroid,
+ ;it holds the value of the destination position the screen to scroll towards.
+ ;It is also used when the screen tries to “revert” towards the player, to avoid
+ ;the screen jumping and showing unloaded layer 1 graphics.
+  ;X position
+   if !sa1 == 0
+    !Freeram_FlipScreenXDestination = $0F62
+   else
+    !Freeram_FlipScreenXDestination = $6F62
+   endif
+  ;Y position
+   if !sa1 == 0
+    !Freeram_FlipScreenYDestination = $0F64
+   else
+    !Freeram_FlipScreenYDestination = $6F64
+   endif
+ ;These makes the screen's scrolling during a flip effect
+ ;move similar to how $7B/$7D works, as well as the fixed point
+ ;coordinates that $13DA/$13DC works. This also enables diagonal scrolling
+ ;similar to how Celeste's flip screen works.
+  ;[4 bytes] X and Y speed and fraction
+  ;+$00 X speed
+  ;+$01 fraction X position
+  ;+$02 Y speed
+  ;+$03 fraction Y position
+   if !sa1 == 0
+    !Freeram_FlipScreenXYSpeedAndFraction = $0F66
+   else
+    !Freeram_FlipScreenXYSpeedAndFraction = $6F66
+   endif
+ ;[1 byte] This identify which screen area the screen is on, as to limit
+ ;the looping only to adjicent areas the screen can transition to.
+  if !sa1 == 0
+   !Freeram_FlipScreenAreaIdentifier = $79
+  else
+   !Freeram_FlipScreenAreaIdentifier = $79
+  endif
+ ;[1 byte] Same as above but is needed to check if the player is switching screens.
+  if !sa1 == 0
+   !Freeram_FlipScreenAreaIdentifierPrev = $79
+  else
+   !Freeram_FlipScreenAreaIdentifierPrev = $79
+  endif
 ;Settings
  ;Are you using center scroll patch? (0 = no, 1 = yes)
   !Setting_ScrollLimits_UsingCenterScroll = 0

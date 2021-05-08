@@ -1,8 +1,11 @@
 ;This is a subroutine file intended to be placed in uberasm tool's "library" folder,
-;and called under gamemode 14 or 7 as "main".
+;and called under gamemode 14 as "main".
 
 ;Call using "JSL LibraryScrollLimits_ScrollLimitMain", without quotes.
+;to apply the Megaman styled flip screen effect zones in the level, call
 
+;using "JSL LibraryScrollLimits_ControlBorders" inside your level asm files
+;of uberasm tool.
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
 ScrollLimitMain:
@@ -510,3 +513,35 @@ Aiming:
 		dw $10CF,$10C5,$10BC,$10B3,$10AA,$10A1,$1098,$108F
 		dw $1086,$107E,$1075,$106C,$1064,$105B,$1052,$104A
 		dw $1042,$1039,$1031,$1029,$1020,$1018,$1010,$1008
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Control borders, use for setting multiple screen areas in level
+;;Input (little endian!):
+;;-$00 to $02: Table (each item is 2 bytes) of X positions
+;;-$03 to $05: Table (each item is 2 bytes) of Y positions
+;;-$06 to $08: Table (each item is 2 bytes) of widths
+;;-$09 to $0B: Table (each item is 2 bytes) of heights
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ControlBorders:
+	LDA !Freeram_FlipScreenAreaIdentifier		;\If there is a change in screen area detected, perform a screen flip
+	CMP !Freeram_FlipScreenAreaIdentifierPrev	;|
+	BEQ .NoTransition				;/
+	STA !Freeram_FlipScreenAreaIdentifierPrev	;>Do it only once (update)
+	LDA #$02					;\No insta-scroll
+	STA !Freeram_ScrollLimitsFlag			;/
+	STZ $1411|!addr					;\Just in case SMW's scrolling would assume
+	STZ $1412|!addr					;/these are set to nonzero and insta-scroll.
+	.SetBorders
+		REP #$30
+		LDA !Freeram_FlipScreenAreaIdentifier
+		AND #$00FF
+		TAY
+		LDA [$00],y				;\Set attributes of the limit box based on what area identifier.
+		STA !Freeram_ScrollLimitsBoxXPosition	;|
+		LDA [$03],y				;|
+		STA !Freeram_ScrollLimitsBoxYPosition	;|
+		LDA [$06],y				;|
+		STA !Freeram_ScrollLimitsAreaWidth	;|
+		LDA [$09],y				;|
+		STA !Freeram_ScrollLimitsAreaHeight	;/
+	.NoTransition
+		RTL
