@@ -564,7 +564,6 @@ SetupBorders:
 					ADC #$00E0			;/
 					CMP !Scratchram_MarioCenterYPos
 					BMI ....Next
-					BRA .Done
 				....Found
 					TYA
 					LSR
@@ -574,6 +573,8 @@ SetupBorders:
 				....Next
 					DEY #2
 					BPL ...Loop
+					LDA #$00				;\Failsafe
+					STA !Freeram_FlipScreenAreaIdentifier	;/
 				....BreakLoop
 	.Done
 		SEP #$30		;>Just in case
