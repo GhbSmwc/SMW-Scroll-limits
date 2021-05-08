@@ -80,10 +80,26 @@
   endif
  ;[1 byte] Same as above but is needed to check if the player is switching screens.
   if !sa1 == 0
-   !Freeram_FlipScreenAreaIdentifierPrev = $79
+   !Freeram_FlipScreenAreaIdentifierPrev = $7C
   else
-   !Freeram_FlipScreenAreaIdentifierPrev = $79
+   !Freeram_FlipScreenAreaIdentifierPrev = $7C
   endif
+;Scratch RAM (can be reused for entirely different ASM resources, as long as during routine execution not to be used
+;at the same time).
+ ;[2 bytes each] Scratch RAM (things like the 24-bit indirect addressing eat up a large portion at $00)
+  ;Mario's center position
+   ;X position
+    if !sa1 == 0
+     !Scratchram_MarioCenterXPos = $7F8449
+    else
+     !Scratchram_MarioCenterXPos = $4001B8
+    endif
+   ;Y position
+    if !sa1 == 0
+     !Scratchram_MarioCenterYPos = $7F844B
+    else
+     !Scratchram_MarioCenterYPos = $4001BA
+    endif
 ;Settings
  ;Are you using center scroll patch? (0 = no, 1 = yes)
   !Setting_ScrollLimits_UsingCenterScroll = 0

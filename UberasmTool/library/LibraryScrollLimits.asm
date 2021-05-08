@@ -514,12 +514,75 @@ Aiming:
 		dw $1086,$107E,$1075,$106C,$1064,$105B,$1052,$104A
 		dw $1042,$1039,$1031,$1029,$1020,$1018,$1010,$1008
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Setup borders, use for setting multiple screen areas in level
+;;Input (little endian!):
+;;-$00 to $02: Table (each item is 2 bytes) of X positions
+;;-$03 to $05: Table (each item is 2 bytes) of Y positions
+;;-$06 to $08: Table (each item is 2 bytes) of widths
+;;-$09 to $0B: Table (each item is 2 bytes) of heights
+;;-$0C to $0D: Size of the table in bytes, minus 2
+;;Output:
+;;-!Freeram_FlipScreenAreaIdentifier: Which screen area to be in.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+SetupBorders:
+	.CheckMarioIsInThoseAreas
+		REP #$30
+		LDA $94					;\Get mario's center position
+		CLC					;|
+		ADC #$0008				;|
+		STA !Scratchram_MarioCenterXPos		;|
+		LDA $96					;|
+		CLC					;|
+		ADC #$0018				;|
+		STA !Scratchram_MarioCenterYPos		;/
+
+		LDA $0C
+		TAY
+		..CheckIfPlayerIsInsideAnyOfTheseBorders
+			...Loop
+				....HorizontalRange
+					LDA !Scratchram_MarioCenterXPos
+					CMP [$00],y
+					BMI ....Next
+					LDA [$00],y
+					CLC
+					ADC [$06],y
+					CLC				;\The screen area extend at a minimum to the right by 256 pixels
+					ADC #$0100			;/
+					CMP !Scratchram_MarioCenterXPos
+					BMI ....Next
+				....VerticalRange
+					LDA !Scratchram_MarioCenterYPos
+					CMP [$03],y
+					BMI ....Next
+					LDA [$03],y
+					CLC
+					ADC [$09],y
+					CLC				;\The screen area extend at a minimum downwards by 224 pixels
+					ADC #$00E0			;/
+					CMP !Scratchram_MarioCenterYPos
+					BMI ....Next
+				....Found
+					TYA
+					LSR
+					SEP #$30
+					STA !Freeram_FlipScreenAreaIdentifier
+					BRA ....BreakLoop
+				....Next
+					DEY #2
+					BPL ...Loop
+				....BreakLoop
+	.Done
+		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Control borders, use for setting multiple screen areas in level
 ;;Input (little endian!):
 ;;-$00 to $02: Table (each item is 2 bytes) of X positions
 ;;-$03 to $05: Table (each item is 2 bytes) of Y positions
 ;;-$06 to $08: Table (each item is 2 bytes) of widths
 ;;-$09 to $0B: Table (each item is 2 bytes) of heights
+;;-!Freeram_FlipScreenAreaIdentifier: Index on the tables to select which
+;; border to be in.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ControlBorders:
 	LDA !Freeram_FlipScreenAreaIdentifier		;\If there is a change in screen area detected, perform a screen flip
@@ -534,6 +597,7 @@ ControlBorders:
 		REP #$30
 		LDA !Freeram_FlipScreenAreaIdentifier
 		AND #$00FF
+		ASL
 		TAY
 		LDA [$00],y				;\Set attributes of the limit box based on what area identifier.
 		STA !Freeram_ScrollLimitsBoxXPosition	;|
@@ -544,4 +608,5 @@ ControlBorders:
 		LDA [$09],y				;|
 		STA !Freeram_ScrollLimitsAreaHeight	;/
 	.NoTransition
+		SEP #$30
 		RTL
