@@ -1,5 +1,5 @@
 ;This is a subroutine file intended to be placed in uberasm tool's "library" folder,
-;and called under gamemode 14 as "main".
+;and called under gamemode 14 or 7 as "main".
 
 ;Call using "JSL LibraryScrollLimits_ScrollLimitMain", without quotes.
 

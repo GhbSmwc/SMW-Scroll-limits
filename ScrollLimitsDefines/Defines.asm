@@ -12,15 +12,15 @@
  ;[2 bytes each] Scroll boundaries.
   ;Left limit X position
    if !sa1 == 0
-    !Freeram_ScrollLimitsLeftBorder = $60
+    !Freeram_ScrollLimitsBoxXPosition = $60
    else
-    !Freeram_ScrollLimitsLeftBorder = $60
+    !Freeram_ScrollLimitsBoxXPosition = $60
    endif
   ;Top limit Y position
    if !sa1 == 0
-    !Freeram_ScrollLimitsTopBorder = $62
+    !Freeram_ScrollLimitsBoxYPosition = $62
    else
-    !Freeram_ScrollLimitsTopBorder = $62
+    !Freeram_ScrollLimitsBoxYPosition = $62
    endif
   ;[2 bytes each] Dimensions (extends rightwards and downwards when you increase
   ;the width and height.) NOTE: This is how far, the top-left of the screen can move

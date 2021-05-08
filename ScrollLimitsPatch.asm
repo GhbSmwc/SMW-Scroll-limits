@@ -7,8 +7,8 @@
 ;-!Freeram_ScrollLimitsFlag
 ;-!Freeram_ScrollLimitsAreaHeight
 ;-!Freeram_ScrollLimitsAreaWidth
-;-!Freeram_ScrollLimitsLeftBorder
-;-!Freeram_ScrollLimitsTopBorder
+;-!Freeram_ScrollLimitsBoxXPosition
+;-!Freeram_ScrollLimitsBoxYPosition
 ;
 ;This patch MERELY edits the scroll limits, other stuff such as
 ;the “flip-screen” effect (megaman, metroid, etc.) are handled
@@ -105,16 +105,16 @@
 			LDA $02
 			CLC
 			ADC $1A
-			CMP !Freeram_ScrollLimitsLeftBorder	;\left boundary
+			CMP !Freeram_ScrollLimitsBoxXPosition	;\left boundary
 			BPL ..CODE_00F746			;|
-			LDA !Freeram_ScrollLimitsLeftBorder	;/
+			LDA !Freeram_ScrollLimitsBoxXPosition	;/
 			
 			..CODE_00F746
 			STA $1A					;>Set screen X position
-			LDA !Freeram_ScrollLimitsLeftBorder	;\Deal with right boundary
+			LDA !Freeram_ScrollLimitsBoxXPosition	;\Deal with right boundary
 			CLC					;|
 			ADC !Freeram_ScrollLimitsAreaWidth	;|
-			CMP $1A					;|!Freeram_ScrollLimitsLeftBorder + !Freeram_ScrollLimitsAreaWidth = Right_boundary
+			CMP $1A					;|!Freeram_ScrollLimitsBoxXPosition + !Freeram_ScrollLimitsAreaWidth = Right_boundary
 			BPL ..CODE_00F75A			;| if Right_boundary >= ScreenXPos (or ScreenXPos < Right_boundary), skip
 			STA $1A					;/>Limit rightwards position.
 			
@@ -146,14 +146,14 @@
 		CLC
 		ADC $1A
 		..LeftBorderCheck
-			CMP !Freeram_ScrollLimitsLeftBorder
+			CMP !Freeram_ScrollLimitsBoxXPosition
 			BPL ...NotExceedingLeft
 			...ExceedingLeft
-			LDA !Freeram_ScrollLimitsLeftBorder
+			LDA !Freeram_ScrollLimitsBoxXPosition
 			...NotExceedingLeft
 			STA $1A
 		..RightBorderCheck
-			LDA !Freeram_ScrollLimitsLeftBorder
+			LDA !Freeram_ScrollLimitsBoxXPosition
 			CLC
 			ADC !Freeram_ScrollLimitsAreaWidth
 			CMP $1A
@@ -191,13 +191,13 @@
 			.CustomLimits
 				PLA
 				ADC $1C
-				CMP !Freeram_ScrollLimitsTopBorder	;\Top limit
+				CMP !Freeram_ScrollLimitsBoxYPosition	;\Top limit
 				BPL ..InBound
 				..PastTheTop
-					LDA !Freeram_ScrollLimitsTopBorder
+					LDA !Freeram_ScrollLimitsBoxYPosition
 				..InBound
 					STA $1C				;/
-				LDA !Freeram_ScrollLimitsTopBorder	;\Bottom limit
+				LDA !Freeram_ScrollLimitsBoxYPosition	;\Bottom limit
 				CLC					;|
 				ADC !Freeram_ScrollLimitsAreaHeight	;|
 				CMP $1C					;|

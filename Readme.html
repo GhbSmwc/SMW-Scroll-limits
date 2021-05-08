@@ -74,7 +74,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<li>When horizontal and/or vertical scrolling are disabled (<kbd>$1411</kbd> and/or <kbd>$1412</kbd>), the boundaries (left or right for horizontal, top and bottom for vertical) are no longer running (it will not set the XY coordinate of
 	the screen to place it back in bounds).</li>
 </ul>
-<h2>Getting started</h2>
+<h2>Installation</h2>
 	<ol>
 		<li>Defines</li>
 		<ol>
@@ -89,9 +89,38 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			<kbd>ScrollLimitsPatch.asm</kbd> just modifies the behavior how scrolling limits work. If you say, install my &ldquo;Center Scroll&rdquo; patch, for example, edit the center scroll patch's scroll limits so that it first checks
 			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works.</li>
 		</ol>
-		<li>Uberasm tool (flip screen effect)</li>
+		<li>Uberasm tool (installs the flip screen effect)</li>
 		<ol>
-			<li>Placeholder</li>
+			<li>In <kbd>SMW-Scroll-limits/UberasmTool/</kbd>, place the files in their appropriate spots in uberasm tool's files. They are conveniently named.</li>
+			<li>Run the tool</li>
 		</ol>
-	
 	</ol>
+<h2>Getting started</h2>
+	<p>With these installed (properly) you can now set your own borders. Keep these information in mind:</p>
+	<ul>
+		<li><font color="grey">Grey</font> means outside the level boundaries</li>
+		<li><font color="blue">blue</font> means inside the level boundaries</li>
+		<li><font color="cyan">cyan</font> means the game screen</li>
+		<li><font color="#800000">red</font> means the boundaries specified by the RAM the patch uses</li>
+		<li><font color="orange">orange</font> means the actual scrolling stopping position for the bottom and right borders</li>
+	</ul>
+	<ul>
+		<li>Origin positions:<br>
+		<img src="readme_files/LevelAndGameScreen.png"><br>
+		Almost everything have their origin point on their top-left corner.</li>
+		<li>How the right and bottom borders are placed, relative to the origin position of the scroll limits box:<br>
+		<img src="readme_files/ScrollLimitsBox.png"></li>
+		<li>Where the screen will stop at relative to the border:<br>
+		<img src="readme_files/LeftAndTop.png"><br>
+		Pretty obvious, but for bottom and right borders, they take the screen's origin position to limit instead of the right and bottom edge of the screen:<br>
+		<img src="readme_files/RightAndBottom.png"><br>
+		Therefore, if you want to get the width/height of an area, and that is the actual rather than where the top-left corner of the screen to stop at, you would do this formula to write to <kbd>!Freeram_ScrollLimitsAreaWidth</kbd>
+		and <kbd>!Freeram_ScrollLimitsAreaHeight</kbd>:
+		<ul>
+			<li><kbd>WidthForFreeramYouShouldUse = PercievedWidth - 256</kbd></li>
+			<li><kbd>HeightForFreeramYouShouldUse = PercievedHeight - 224</kbd></li>
+		</ul><br>
+		And to get the <kbd>PercievedWidth</kbd> and <kbd>PercievedHeight</kbd>, just use Lunar Magic, hover your mouse to anywhere you want to place your borders to be on, take the coordinates on the bottom left corner (it shows the coordinate
+		in blocks, multiply by 16).
+		</li>
+	</ul>
