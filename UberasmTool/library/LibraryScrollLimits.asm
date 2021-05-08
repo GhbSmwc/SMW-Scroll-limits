@@ -587,6 +587,9 @@ SetupBorders:
 ;;-$03 to $05: Table (each item is 2 bytes) of Y positions
 ;;-$06 to $08: Table (each item is 2 bytes) of widths
 ;;-$09 to $0B: Table (each item is 2 bytes) of heights
+;;-$0C: Scroll limits flag (don't use other values than listed here):
+;; -$02 = Scroll without freeze
+;; -$03 = Scroll with freeze
 ;;-!Freeram_FlipScreenAreaIdentifier: Index on the tables to select which
 ;; border to be in.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -595,7 +598,7 @@ ControlBorders:
 	CMP !Freeram_FlipScreenAreaIdentifierPrev	;|
 	BEQ .NoTransition				;/
 	STA !Freeram_FlipScreenAreaIdentifierPrev	;>Do it only once (update)
-	LDA #$02					;\No insta-scroll
+	LDA $0C						;\No insta-scroll
 	STA !Freeram_ScrollLimitsFlag			;/
 	STZ $1411|!addr					;\Just in case SMW's scrolling would assume
 	STZ $1412|!addr					;/these are set to nonzero and insta-scroll.
