@@ -564,6 +564,7 @@ SetupBorders:
 					ADC #$00E0			;/
 					CMP !Scratchram_MarioCenterYPos
 					BMI ....Next
+					BRA .Done
 				....Found
 					TYA
 					LSR
@@ -575,6 +576,7 @@ SetupBorders:
 					BPL ...Loop
 				....BreakLoop
 	.Done
+		SEP #$30		;>Just in case
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Control borders, use for setting multiple screen areas in level
