@@ -573,8 +573,9 @@ SetupBorders:
 				....Next
 					DEY #2
 					BPL ...Loop
-					LDA #$00				;\Failsafe
-					STA !Freeram_FlipScreenAreaIdentifier	;/
+				....NotFound
+					SEP #$30			;\If mario is not in any of the areas listed in the tables, don't set the
+					BRA .Done			;/screen area to some weird areas.
 				....BreakLoop
 	.Done
 		SEP #$30		;>Just in case
