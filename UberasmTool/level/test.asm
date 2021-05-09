@@ -5,10 +5,18 @@ load:
 	STA !Freeram_DisableBarrier
 	STA !Freeram_ScrollLimitsFlag
 	REP #$20
-	LDA $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
-	CLC
-	ADC #$0010
-	STA $1417|!addr
+	;Stuff you may have to fiddle around so that the background does not glitch or suddenly move
+		;Layer 2 Y offset from layer 1
+			;LDA $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
+			;CLC
+			;ADC #$0010
+			;STA $1417|!addr
+		;Layer 2 X position. Number of LSR is the scrolling rate:
+		;None = constant
+		;LSR #1 = variable
+			LDA $1462|!addr
+			LSR
+			STA $1466|!addr
 	SEP #$20
 	LDA.b #ScreenBoundsXPositions : STA $00
 	LDA.b #ScreenBoundsXPositions>>8 : STA $01
