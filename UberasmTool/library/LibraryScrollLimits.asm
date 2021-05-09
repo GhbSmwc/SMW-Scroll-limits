@@ -516,7 +516,8 @@ Aiming:
 		dw $1086,$107E,$1075,$106C,$1064,$105B,$1052,$104A
 		dw $1042,$1039,$1031,$1029,$1020,$1018,$1010,$1008
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;Setup borders, use for setting multiple screen areas in level
+;;Setup borders, this determine which borders to use based on player position
+;;in the level.
 ;;Input (little endian!):
 ;;-$00 to $02: Table (each item is 2 bytes) of X positions
 ;;-$03 to $05: Table (each item is 2 bytes) of Y positions
@@ -581,7 +582,7 @@ SetupBorders:
 		SEP #$30		;>Just in case
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;Control borders, use for setting multiple screen areas in level
+;;Control borders, use for activating screen transition to another area.
 ;;Input (little endian!):
 ;;-$00 to $02: Table (each item is 2 bytes) of X positions
 ;;-$03 to $05: Table (each item is 2 bytes) of Y positions
@@ -619,3 +620,46 @@ ControlBorders:
 	.NoTransition
 		SEP #$30
 		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Force screen to be in bounds (this will instantly set the XY pos of the
+;;screen, and to be used during level load (under "load:")). Call this AFTER
+;;calling "JSL LibraryScrollLimits_SetupBorders".
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ForceScreenWithinLimits:
+	.XPos
+		REP #$20
+		LDA !Freeram_ScrollLimitsBoxXPosition
+		CMP $1462|!addr
+		BMI ..NotExceedLeft
+		STA $1462|!addr
+		STA $1A
+		
+		..NotExceedLeft
+		LDA !Freeram_ScrollLimitsBoxXPosition
+		CLC
+		ADC !Freeram_ScrollLimitsAreaWidth
+		CMP $1462|!addr
+		BPL ..NotExceedRight
+		STA $1462|!addr
+		STA $1A
+		
+		..NotExceedRight
+	.YPos
+		LDA !Freeram_ScrollLimitsBoxYPosition
+		CMP $1464|!addr
+		BMI ..NotExceedTop
+		STA $1464|!addr
+		STA $1C
+		
+		..NotExceedTop
+		LDA !Freeram_ScrollLimitsBoxYPosition
+		CLC
+		ADC !Freeram_ScrollLimitsAreaHeight
+		CMP $1464|!addr
+		BPL ..NotExceedBottom
+		STA $1464|!addr
+		STA $1C
+		
+		..NotExceedBottom
+		SEP #$20
+	RTL
