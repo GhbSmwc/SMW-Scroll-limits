@@ -1,32 +1,10 @@
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
 load:
-	;LDA #$00
-	;STA !Freeram_FlipScreenAreaIdentifier		;\Don't trigger scrolling effect
-	;STA !Freeram_FlipScreenAreaIdentifierPrev	;/
-	;LDA #$01					;\Apply scroll barriers
-	;STA !Freeram_ScrollLimitsFlag			;/
-	;STA !Freeram_DisableBarrier			;>Disable screen barriers preventing Mario from going off the edges.
-	;REP #$20
-	;;You may have to trial and error fiddling this so that layer 1 or 2
-	;;not to snap during the level fading after loading. An easy method,
-	;;is by using a debugger, and look at the values of $1A-$20 AFTER the
-	;;snapping occurs to get its position, and use that number here to set
-	;;it so that it doesn't appear to jump on its XY position.
-	;	LDA #$0000 : STA $1A : STA $1462|!addr		;>Layer 1 X position
-	;	LDA #$00C0 : STA $1C : STA $1464|!addr		;>Layer 1 Y position
-	;	;LDA #$00C0 : STA $1E : STA $1466|!addr		;>Layer 2 X position
-	;	LDA #$0060 : STA $20 : STA $1468|!addr		;>Layer 2 Y position
-	;	STZ $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
-	;LDA #$0000 : STA !Freeram_ScrollLimitsBoxXPosition : STA $1A : STA $1462
-	;LDA #($0000*16) : STA !Freeram_ScrollLimitsBoxYPosition
-	;LDA #$0080 : STA !Freeram_ScrollLimitsAreaWidth
-	;LDA #($000C-$0000)*16 : STA !Freeram_ScrollLimitsAreaHeight
-	;SEP #$20
-	
-	LDA #$01
+	LDA #$02
 	STA !Freeram_DisableBarrier
 	STA !Freeram_ScrollLimitsFlag
+	STZ $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
 	LDA.b #ScreenBoundsXPositions : STA $00
 	LDA.b #ScreenBoundsXPositions>>8 : STA $01
 	LDA.b #ScreenBoundsXPositions>>16 : STA $02
@@ -40,10 +18,12 @@ load:
 	LDA.b #ScreenBoundsHeights>>8 : STA $0A
 	LDA.b #ScreenBoundsHeights>>16 : STA $0B
 	LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D
+	STZ $1411|!addr					;\Just in case
+	STZ $1412|!addr					;/
 	JSL LibraryScrollLimits_IdentifyWhichBorder
+	LDA #$03
+	STA $0C
 	JSL LibraryScrollLimits_SetScrollBorder
-	LDA !Freeram_FlipScreenAreaIdentifier
-	STA !Freeram_FlipScreenAreaIdentifierPrev
 	JSL LibraryScrollLimits_ForceScreenWithinLimits
 	RTL
 main:

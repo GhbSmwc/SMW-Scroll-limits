@@ -635,13 +635,38 @@ SetScrollBorder:
 ForceScreenWithinLimits:
 	JSL SetScrollBorder
 	REP #$20
-	LDA !Freeram_FlipScreenXDestination
-	;STA $1A
-	STA $1462|!addr
-	LDA $96
-	SEC
-	SBC.w #!Setting_ScrollLimits_PlayerYCenter
-	;STA $1C
-	STA $1464|!addr
+	.Horiz
+		LDA !Freeram_ScrollLimitsBoxXPosition
+		CMP $1462|!addr
+		BMI ..NotExceedLeft
+		STA $1462|!addr
+		STA $1A
+		
+		..NotExceedLeft
+		CLC
+		ADC !Freeram_ScrollLimitsAreaWidth
+		CMP $1462|!addr
+		BPL ..NotExceedRight
+		STA $1462|!addr
+		STA $1A
+		
+		..NotExceedRight
+	.Vert
+		LDA !Freeram_ScrollLimitsBoxYPosition
+		CMP $1464|!addr
+		BMI ..NotExceedTop
+		STA $1464|!addr
+		STA $1C
+		
+		..NotExceedTop
+		LDA !Freeram_ScrollLimitsBoxXPosition
+		CLC
+		ADC !Freeram_ScrollLimitsAreaHeight
+		CMP $1464|!addr
+		BPL ..NotExceedBottom
+		STA $1464|!addr
+		STA $1C
+		
+		..NotExceedBottom
 	SEP #$20
 	RTL
