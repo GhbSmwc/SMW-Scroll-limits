@@ -4,7 +4,7 @@
 ;Call using "JSL LibraryScrollLimits_ScrollLimitMain", without quotes.
 ;to apply the Megaman styled flip screen effect zones in the level, call
 
-;using "JSL LibraryScrollLimits_ControlBorders" inside your level asm files
+;using "JSL LibraryScrollLimits_SetScrollBorder" inside your level asm files
 ;of uberasm tool.
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
@@ -527,7 +527,7 @@ Aiming:
 ;;Output:
 ;;-!Freeram_FlipScreenAreaIdentifier: Which screen area to be in.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-SetupBorders:
+IdentifyWhichBorder:
 	.CheckMarioIsInThoseAreas
 		REP #$30
 		LDA $94					;\Get mario's center position
@@ -594,12 +594,14 @@ SetupBorders:
 ;;-!Freeram_FlipScreenAreaIdentifier: Index on the tables to select which
 ;; border to be in.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ControlBorders:
+SetScrollBorder:
 	LDA $0100|!addr					;\Set the borders, ignoring the screen check and transition during level load.
 	CMP #$11					;|
 	BEQ .SetBorders					;/
 	CMP #$12					;\...Just in case
-	BEQ .SetBorders					;/
+	BEQ .SetBorders					;|
+	LDA #$13
+	BEQ .SetBorders
 	LDA !Freeram_FlipScreenAreaIdentifier		;\If there is a change in screen area detected, perform a screen flip
 	CMP !Freeram_FlipScreenAreaIdentifierPrev	;|
 	BEQ .NoTransition				;/
@@ -628,18 +630,18 @@ ControlBorders:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Force screen to be in bounds (this will instantly set the XY pos of the
 ;;screen, and to be used during level load (under "load:")). Call this AFTER
-;;calling "JSL LibraryScrollLimits_SetupBorders".
+;;calling "JSL LibraryScrollLimits_IdentifyWhichBorder".
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ForceScreenWithinLimits:
-	JSL ClampDestinationPosition
+	JSL SetScrollBorder
 	REP #$20
 	LDA !Freeram_FlipScreenXDestination
-	STA $1A
+	;STA $1A
 	STA $1462|!addr
 	LDA $96
 	SEC
-	SBC #!Setting_ScrollLimits_PlayerYCenter
-	STA $1C
+	SBC.w #!Setting_ScrollLimits_PlayerYCenter
+	;STA $1C
 	STA $1464|!addr
 	SEP #$20
 	RTL

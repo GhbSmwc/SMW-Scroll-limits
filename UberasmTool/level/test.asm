@@ -1,28 +1,50 @@
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
 load:
-	LDA #$00
-	STA !Freeram_FlipScreenAreaIdentifier		;\Don't trigger scrolling effect
-	STA !Freeram_FlipScreenAreaIdentifierPrev	;/
-	LDA #$01					;\Apply scroll barriers
-	STA !Freeram_ScrollLimitsFlag			;/
-	STA !Freeram_DisableBarrier			;>Disable screen barriers preventing Mario from going off the edges.
-	REP #$20
-	;You may have to trial and error fiddling this so that layer 1 or 2
-	;not to snap during the level fading after loading. An easy method,
-	;is by using a debugger, and look at the values of $1A-$20 AFTER the
-	;snapping occurs to get its position, and use that number here to set
-	;it so that it doesn't appear to jump on its XY position.
-		LDA #$0000 : STA $1A : STA $1462|!addr		;>Layer 1 X position
-		LDA #$00C0 : STA $1C : STA $1464|!addr		;>Layer 1 Y position
-		;LDA #$00C0 : STA $1E : STA $1466|!addr		;>Layer 2 X position
-		LDA #$0060 : STA $20 : STA $1468|!addr		;>Layer 2 Y position
-		STZ $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
-	LDA #$0000 : STA !Freeram_ScrollLimitsBoxXPosition : STA $1A : STA $1462
-	LDA #($0000*16) : STA !Freeram_ScrollLimitsBoxYPosition
-	LDA #$0080 : STA !Freeram_ScrollLimitsAreaWidth
-	LDA #($000C-$0000)*16 : STA !Freeram_ScrollLimitsAreaHeight
-	SEP #$20
+	;LDA #$00
+	;STA !Freeram_FlipScreenAreaIdentifier		;\Don't trigger scrolling effect
+	;STA !Freeram_FlipScreenAreaIdentifierPrev	;/
+	;LDA #$01					;\Apply scroll barriers
+	;STA !Freeram_ScrollLimitsFlag			;/
+	;STA !Freeram_DisableBarrier			;>Disable screen barriers preventing Mario from going off the edges.
+	;REP #$20
+	;;You may have to trial and error fiddling this so that layer 1 or 2
+	;;not to snap during the level fading after loading. An easy method,
+	;;is by using a debugger, and look at the values of $1A-$20 AFTER the
+	;;snapping occurs to get its position, and use that number here to set
+	;;it so that it doesn't appear to jump on its XY position.
+	;	LDA #$0000 : STA $1A : STA $1462|!addr		;>Layer 1 X position
+	;	LDA #$00C0 : STA $1C : STA $1464|!addr		;>Layer 1 Y position
+	;	;LDA #$00C0 : STA $1E : STA $1466|!addr		;>Layer 2 X position
+	;	LDA #$0060 : STA $20 : STA $1468|!addr		;>Layer 2 Y position
+	;	STZ $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
+	;LDA #$0000 : STA !Freeram_ScrollLimitsBoxXPosition : STA $1A : STA $1462
+	;LDA #($0000*16) : STA !Freeram_ScrollLimitsBoxYPosition
+	;LDA #$0080 : STA !Freeram_ScrollLimitsAreaWidth
+	;LDA #($000C-$0000)*16 : STA !Freeram_ScrollLimitsAreaHeight
+	;SEP #$20
+	
+	LDA #$01
+	STA !Freeram_DisableBarrier
+	STA !Freeram_ScrollLimitsFlag
+	LDA.b #ScreenBoundsXPositions : STA $00
+	LDA.b #ScreenBoundsXPositions>>8 : STA $01
+	LDA.b #ScreenBoundsXPositions>>16 : STA $02
+	LDA.b #ScreenBoundsYPositions : STA $03
+	LDA.b #ScreenBoundsYPositions>>8 : STA $04
+	LDA.b #ScreenBoundsYPositions>>16 : STA $05
+	LDA.b #ScreenBoundsWidths : STA $06
+	LDA.b #ScreenBoundsWidths>>8 : STA $07
+	LDA.b #ScreenBoundsWidths>>16 : STA $08
+	LDA.b #ScreenBoundsHeights : STA $09
+	LDA.b #ScreenBoundsHeights>>8 : STA $0A
+	LDA.b #ScreenBoundsHeights>>16 : STA $0B
+	LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D
+	JSL LibraryScrollLimits_IdentifyWhichBorder
+	JSL LibraryScrollLimits_SetScrollBorder
+	LDA !Freeram_FlipScreenAreaIdentifier
+	STA !Freeram_FlipScreenAreaIdentifierPrev
+	JSL LibraryScrollLimits_ForceScreenWithinLimits
 	RTL
 main:
 	LDA.b #ScreenBoundsXPositions : STA $00
@@ -38,9 +60,9 @@ main:
 	LDA.b #ScreenBoundsHeights>>8 : STA $0A
 	LDA.b #ScreenBoundsHeights>>16 : STA $0B
 	LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D
-	JSL LibraryScrollLimits_SetupBorders
+	JSL LibraryScrollLimits_IdentifyWhichBorder
 	LDA #$03 : STA $0C
-	JSL LibraryScrollLimits_ControlBorders
+	JSL LibraryScrollLimits_SetScrollBorder
 	RTL
 ;Scroll limit box attributes, each index is each screen area.
 ;Make sure the number of values all matches!
