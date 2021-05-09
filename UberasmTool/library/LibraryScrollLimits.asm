@@ -652,6 +652,7 @@ ForceScreenWithinLimits:
 		
 		..NotExceedRight
 	.Vert
+		wdm
 		LDA !Freeram_ScrollLimitsBoxYPosition
 		CMP $1464|!addr
 		BMI ..NotExceedTop
@@ -659,7 +660,7 @@ ForceScreenWithinLimits:
 		STA $1C
 		
 		..NotExceedTop
-		LDA !Freeram_ScrollLimitsBoxXPosition
+		LDA !Freeram_ScrollLimitsBoxYPosition
 		CLC
 		ADC !Freeram_ScrollLimitsAreaHeight
 		CMP $1464|!addr
