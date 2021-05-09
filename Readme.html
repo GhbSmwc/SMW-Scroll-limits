@@ -30,7 +30,9 @@
 <body>
 <center><h1>Custom scroll limits</h1></center>
 <h2>Introduction</h2>
-<p>This ASM package enables you to set custom boundaries of your level</p>
+<p>This ASM package enables you to set custom boundaries of your level.</p>
+
+<p>Also comes with a feature to have Megaman/Celeste/Zelda-styled scroll areas where the camera will not cross between areas unless you go to that area.</p>
 
 <p>Normally, you would think this is redundant because there exist other codes that stops the screen scrolling at a certain XY position, say one
 found in the <a href="https://www.smwcentral.net/?p=viewthread&t=62286">ASM library</a>, however this ASM package offers more flexibility, and that
@@ -63,9 +65,6 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 <ul>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=13675">Sprite scroll fix</a>: The system to check which scroll direction sprites should be able to spawn (<kbd>$55</kbd>/<kbd>$56</kbd>) is flawed, that it
 	check which side the player is located relative to the &ldquo;static camera region&rdquo; (<kbd>$142A</kbd>), rather than the actual scrolling of the screen.</li>
-</ul>
-<h2>Recommended patches</h2>
-<ul>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a>: Useful if you want such triggers that would trigger the flip-screen effect by touching the very edges of the screen, and also
 	prevent potential deaths caused by being at those edges of the screen.</li>
 </ul>
@@ -121,6 +120,8 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			<li><kbd>HeightForFreeramYouShouldUse = PercievedHeight - 224</kbd></li>
 		</ul><br>
 		And to get the <kbd>PercievedWidth</kbd> and <kbd>PercievedHeight</kbd>, just use Lunar Magic, hover your mouse to anywhere you want to place your borders to be on, take the coordinates on the bottom left corner (it shows the coordinate
-		in blocks, multiply by 16).
+		in blocks, multiply by 16).<br><br>
+		
+		Also, LM have another feature thats been there for a while: &ldquo;Game View Screen&rdquo; (view &rightarrow; Game View Screen, shortcut key: F3). This can help measure the width very easily.
 		</li>
 	</ul>

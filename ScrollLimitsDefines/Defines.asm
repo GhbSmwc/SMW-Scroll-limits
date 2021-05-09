@@ -100,6 +100,13 @@
     else
      !Scratchram_MarioCenterYPos = $4001BA
     endif
+;RAM used by other patches
+ ;Disable screen barrier via RAM
+  if !sa1 == 0
+   !Freeram_DisableBarrier = $5C
+  else
+   !Freeram_DisableBarrier = $5C
+  endif
 ;Settings
  ;Are you using center scroll patch? (0 = no, 1 = yes)
   !Setting_ScrollLimits_UsingCenterScroll = 0
