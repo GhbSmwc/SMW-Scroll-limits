@@ -595,11 +595,16 @@ SetupBorders:
 ;; border to be in.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ControlBorders:
+	LDA $0100|!addr					;\Set the borders, ignoring the screen check and transition during level load.
+	CMP #$11					;|
+	BEQ .SetBorders					;/
+	CMP #$12					;\...Just in case
+	BEQ .SetBorders					;/
 	LDA !Freeram_FlipScreenAreaIdentifier		;\If there is a change in screen area detected, perform a screen flip
 	CMP !Freeram_FlipScreenAreaIdentifierPrev	;|
 	BEQ .NoTransition				;/
 	STA !Freeram_FlipScreenAreaIdentifierPrev	;>Do it only once (update)
-	LDA $0C						;\No insta-scroll
+	LDA $0C						;\No insta-scroll (transition)
 	STA !Freeram_ScrollLimitsFlag			;/
 	STZ $1411|!addr					;\Just in case SMW's scrolling would assume
 	STZ $1412|!addr					;/these are set to nonzero and insta-scroll.
@@ -626,40 +631,15 @@ ControlBorders:
 ;;calling "JSL LibraryScrollLimits_SetupBorders".
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ForceScreenWithinLimits:
-	.XPos
-		REP #$20
-		LDA !Freeram_ScrollLimitsBoxXPosition
-		CMP $1462|!addr
-		BMI ..NotExceedLeft
-		STA $1462|!addr
-		STA $1A
-		
-		..NotExceedLeft
-		LDA !Freeram_ScrollLimitsBoxXPosition
-		CLC
-		ADC !Freeram_ScrollLimitsAreaWidth
-		CMP $1462|!addr
-		BPL ..NotExceedRight
-		STA $1462|!addr
-		STA $1A
-		
-		..NotExceedRight
-	.YPos
-		LDA !Freeram_ScrollLimitsBoxYPosition
-		CMP $1464|!addr
-		BMI ..NotExceedTop
-		STA $1464|!addr
-		STA $1C
-		
-		..NotExceedTop
-		LDA !Freeram_ScrollLimitsBoxYPosition
-		CLC
-		ADC !Freeram_ScrollLimitsAreaHeight
-		CMP $1464|!addr
-		BPL ..NotExceedBottom
-		STA $1464|!addr
-		STA $1C
-		
-		..NotExceedBottom
-		SEP #$20
+	JSL ClampDestinationPosition
+	REP #$20
+	LDA !Freeram_FlipScreenXDestination
+	STA $1A
+	STA $1462|!addr
+	LDA $96
+	SEC
+	SBC #!Setting_ScrollLimits_PlayerYCenter
+	STA $1C
+	STA $1464|!addr
+	SEP #$20
 	RTL
