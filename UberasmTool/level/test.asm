@@ -61,6 +61,7 @@ main:
 		dw $005C*16		;>$06
 		dw $005C*16		;>$07
 		dw $007C*16		;>$08
+		dw $009D*16		;>$09
 	ScreenBoundsYPositions:
 		dw $0000*16		;>$00
 		dw $0015*16		;>$01
@@ -71,6 +72,7 @@ main:
 		dw $000C*16		;>$06
 		dw $001A*16		;>$07
 		dw $0000*16		;>$08
+		dw $0000*16		;>$09
 ;Widths and heights. Easy formula if you want positions for both the top-lefts and bottom-rights.
 ; (LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16
 ; Where:
@@ -89,6 +91,7 @@ main:
 		dw ($006C-$005C)*16	;>$06
 		dw ($0063-$005C)*16	;>$07
 		dw ($008D-$007C)*16	;>$08
+		dw ($00AD-$009D)*16	;>$09
 	ScreenBoundsHeights:
 		dw ($000C-$0000)*16	;>$00
 		dw ($0015-$0015)*16	;>$01
@@ -99,3 +102,4 @@ main:
 		dw ($000C-$000C)*16	;>$06
 		dw ($001A-$001A)*16	;>$07
 		dw ($001B-$0000)*16	;>$08
+		dw ($001B-$0000)*16	;>$09
