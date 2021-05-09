@@ -4,7 +4,12 @@ load:
 	LDA #$02
 	STA !Freeram_DisableBarrier
 	STA !Freeram_ScrollLimitsFlag
-	STZ $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
+	REP #$20
+	LDA $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
+	CLC
+	ADC #$0010
+	STA $1417|!addr
+	SEP #$20
 	LDA.b #ScreenBoundsXPositions : STA $00
 	LDA.b #ScreenBoundsXPositions>>8 : STA $01
 	LDA.b #ScreenBoundsXPositions>>16 : STA $02
