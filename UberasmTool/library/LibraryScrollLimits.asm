@@ -634,7 +634,14 @@ SetScrollBorder:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ForceScreenWithinLimits:
 	JSL SetScrollBorder
+	JSL ClampDestinationPosition
 	REP #$20
+	LDA !Freeram_FlipScreenXDestination
+	STA $1462|!addr
+	STA $1A
+	LDA !Freeram_FlipScreenYDestination
+	STA $1464|!addr
+	STA $1C
 	.Horiz
 		LDA !Freeram_ScrollLimitsBoxXPosition
 		CMP $1462|!addr
@@ -652,7 +659,6 @@ ForceScreenWithinLimits:
 		
 		..NotExceedRight
 	.Vert
-		wdm
 		LDA !Freeram_ScrollLimitsBoxYPosition
 		CMP $1464|!addr
 		BMI ..NotExceedTop
