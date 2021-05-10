@@ -634,14 +634,14 @@ SetScrollBorder:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ForceScreenWithinLimits:
 	JSL SetScrollBorder
-	JSL ClampDestinationPosition
-	REP #$20
-	LDA !Freeram_FlipScreenXDestination
-	STA $1462|!addr
-	STA $1A
-	LDA !Freeram_FlipScreenYDestination
-	STA $1464|!addr
-	STA $1C
+	JSL ClampDestinationPosition		;\Fix a potential bug that can occur
+	REP #$20				;|when teleporting within the same level
+	LDA !Freeram_FlipScreenXDestination	;|
+	STA $1462|!addr				;|
+	STA $1A					;|
+	LDA !Freeram_FlipScreenYDestination	;|
+	STA $1464|!addr				;|
+	STA $1C					;/
 	.Horiz
 		LDA !Freeram_ScrollLimitsBoxXPosition
 		CMP $1462|!addr
