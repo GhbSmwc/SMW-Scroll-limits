@@ -593,23 +593,33 @@ IdentifyWhichBorder:
 ;; -$03 = Scroll with freeze
 ;;-!Freeram_FlipScreenAreaIdentifier: Index on the tables to select which
 ;; border to be in.
+;;Output:
+;;-$0D: Is there a screen transition?: $00 = No, $01 = Yes. Useful if you
+;; code to run for 1 frame at the initial screen transition, such as changing
+;; the music or other effects. Most likely you'll have to check $0D and
+;; !Freeram_FlipScreenAreaIdentifier to identify which area you are
+;; transitioning to
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SetScrollBorder:
-	LDA $0100|!addr					;\Set the borders, ignoring the screen check and transition during level load.
-	CMP #$11					;|
-	BEQ .SetBorders					;/
-	CMP #$12					;\...Just in case
-	BEQ .SetBorders					;|
-	LDA #$13
-	BEQ .SetBorders
-	LDA !Freeram_FlipScreenAreaIdentifier		;\If there is a change in screen area detected, perform a screen flip
-	CMP !Freeram_FlipScreenAreaIdentifierPrev	;|
-	BEQ .NoTransition				;/
-	STA !Freeram_FlipScreenAreaIdentifierPrev	;>Do it only once (update)
-	LDA $0C						;\No insta-scroll (transition)
-	STA !Freeram_ScrollLimitsFlag			;/
-	STZ $1411|!addr					;\Just in case SMW's scrolling would assume
-	STZ $1412|!addr					;/these are set to nonzero and insta-scroll.
+	STZ $0D						;>Default screen transitioning to $00
+	.CheckShouldScreenTransition
+		LDA $0100|!addr					;\Set the borders, ignoring the screen check and transition during level load.
+		CMP #$11					;|
+		BEQ .SetBorders					;/
+		CMP #$12					;\...Just in case
+		BEQ .SetBorders					;|
+		LDA #$13					;|
+		BEQ .SetBorders					;/
+		LDA !Freeram_FlipScreenAreaIdentifier		;\If there is a change in screen area detected, perform a screen flip
+		CMP !Freeram_FlipScreenAreaIdentifierPrev	;|
+		BEQ .NoTransition				;/
+	.Transition
+		STA !Freeram_FlipScreenAreaIdentifierPrev	;>Do it only once (update)
+		INC $0D						;>Mark that a screen is transitioning.
+		LDA $0C						;\No insta-scroll (transition)
+		STA !Freeram_ScrollLimitsFlag			;/
+		STZ $1411|!addr					;\Just in case SMW's scrolling would assume
+		STZ $1412|!addr					;/these are set to nonzero and insta-scroll.
 	.SetBorders
 		REP #$30
 		LDA !Freeram_FlipScreenAreaIdentifier
