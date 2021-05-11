@@ -61,12 +61,19 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go left past the screen $00 or go right past the last
 	screen. Autoscroll generators have done this.</li>
 </ul>
-<h2>Required patches</h2>
+<h2>What you need</h2>
 <ul>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=13675">Sprite scroll fix</a>: The system to check which scroll direction sprites should be able to spawn (<kbd>$55</kbd>/<kbd>$56</kbd>) is flawed, that it
 	check which side the player is located relative to the &ldquo;static camera region&rdquo; (<kbd>$142A</kbd>), rather than the actual scrolling of the screen.</li>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a>: Useful if you want such triggers that would trigger the flip-screen effect by touching the very edges of the screen, and also
 	prevent potential deaths caused by being at those edges of the screen.</li>
+	<li>ASM knowledge, if you are using other screen scrolling-related patches that modifies how the player scrolls the screen, such as my <a href="https://www.smwcentral.net/?p=section&a=details&id=26861">center scroll</a> patch, which is a really high chance
+	of conflicts or simply not executing at all (like a patch that JMLs to skip the hijacks that <kbd>ScrollLimitsPatch.asm</kbd> wrote on):
+		<ul>
+			<li><a href="https://www.smwcentral.net/?p=section&a=details&id=20949">ASM workshop</a></li>
+			<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">Ersanio's ASM tutorial</a></li>
+		</ul>
+	</li>
 </ul>
 <h2>Interesting facts</h2>
 <ul>
@@ -86,7 +93,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			<kbd>org $xxxxxx</kbd> would conflict. If they do, you'll need to merge them and potentially need to learn a little bit of ASM.<br><br>
 			
 			<kbd>ScrollLimitsPatch.asm</kbd> just modifies the behavior how scrolling limits work. If you say, install my &ldquo;Center Scroll&rdquo; patch, for example, edit the center scroll patch's scroll limits so that it first checks
-			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works.</li>
+			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works (which means you'll need to learn about ASM).</li>
 		</ol>
 		<li>Uberasm tool (installs the flip screen effect)</li>
 		<ol>
@@ -256,4 +263,4 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<h4>Note using in a level</h2>
 	<p>If the areas overlap, and the player is in that area, whatever last on the table list the player is in will take precedence and overrides any borders before it on the table, as the routine, like most codes uses a
 	<a href="https://ersanio.gitbook.io/assembly-for-the-snes/deep-dives/techniques#looping">negative check loop</a> (a loop that an index starts with a specified number besides 0, and in that loop, the index decrements
-	until it goes negatives and exits).</p>
+	until it goes negative (X/Y = $FF, for example) and exits).</p>
