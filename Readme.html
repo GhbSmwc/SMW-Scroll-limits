@@ -77,9 +77,9 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		
 		Here is a hint: XY position top and left positions are <b>always</b> X/Y = <kbd>$0000</kbd>. The right and bottom limits are:
 		<ul>
-			<li>Horizontal levels (and any dimension settings): <kbd>LastScreenXPosition = (ValueIn_RAM_5E - 1) * 16</kbd>. The bottom position is stored in scratch RAM <kbd>$04</kbd> during around <kbd>$00F810</kbd>. Unlike <kbd>$13D7</kbd>, LM have a feature with an option to enable the screen
+			<li>Horizontal levels (and any dimension settings): <kbd>LastScreenXPosition = (ValueIn_RAM_5E - 1) * 256</kbd>. The bottom position is stored in scratch RAM <kbd>$04</kbd> during around <kbd>$00F810</kbd>. Unlike <kbd>$13D7</kbd>, LM have a feature with an option to enable the screen
 			to scroll down to show the last row of blocks at the very bottom of the level, on &ldquo;Change Properties in Header&rdquo;.</li>
-			<li>Vertical levels: The last screen on the horizontal axis is <b>always</b> at X = <kbd>$0100</kbd> (since vertical level settings are always 2 screens wide). The bottom position is at <kbd>LastScreenYPosition = (ValueIn_RAM_5F - 1) * 16</kbd>.</li>
+			<li>Vertical levels: The last screen on the horizontal axis is <b>always</b> at X = <kbd>$0100</kbd> (since vertical level settings are always 2 screens wide). The bottom position is at <kbd>LastScreenYPosition = (ValueIn_RAM_5F - 1) * 256</kbd>.</li>
 		</ul>
 	</li>
 </ul>
