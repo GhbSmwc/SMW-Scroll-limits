@@ -43,11 +43,16 @@
 ;Get defines
 	incsrc "ScrollLimitsDefines/Defines.asm"
 ;Hijacks
-	;Make uberasm tool to truely be able to set $9D to nonzero value and without
-	;messing up the HDMA
-		org $00C5CE			;\fix hdma issues (like message box) when setting
-		autoclean JSL FixHDMA		;/$7E0071 to #$0B ($00cde8 constantly sets $9D to $00 when $71 is $00.).
-		NOP #4
+;	;Make uberasm tool to truely be able to set $9D to nonzero value and without
+;	;messing up the HDMA
+;		org $00C5CE			;\fix hdma issues (like message box) when setting
+;		autoclean JSL FixHDMA		;/$7E0071 to #$0B ($00cde8 constantly sets $9D to $00 when $71 is $00.).
+;		NOP #4
+	;^Note to self: $13FB is a better alternative to setting $71 to #$0B since the latter can cause issues like player dropping
+	;carried sprites during a flip screen transition. How this works: it performs the code in this order:
+	;(1) Check if player is frozen at $00C4FB
+	;(2) Check player animation state at $00C593 if $13FB is zero. Assuming the player is "normal", $71 == $00, it jumps to $00CC68
+	;(3) JSR at $00CCC3, goes to $00CDDD, and eventually clears $9D, every frame, at $00CDE8
 	;Horizontal level
 		org $00F73C
 		autoclean JML HorizontalLevelHorizontalLimits
@@ -59,19 +64,19 @@
 		autoclean JML VerticalScrollingLimits
 ;Main code
 	freecode
-	FixHDMA: ;>JSL from $00C5CE
-		LDA $0D9B|!addr
-		CMP #$C1
-		BNE .NormalLevel
-	
-		.BowserFight
-			;Restore code
-			STZ.W $0D9F|!addr		;>no HDMA!
-			LDA.B #$01			;\
-			STA.W $1B88|!addr		;/ message box is expanding
-	
-		.NormalLevel
-			RTL
+;	FixHDMA: ;>JSL from $00C5CE
+;		LDA $0D9B|!addr
+;		CMP #$C1
+;		BNE .NormalLevel
+;	
+;		.BowserFight
+;			;Restore code
+;			STZ.W $0D9F|!addr		;>no HDMA!
+;			LDA.B #$01			;\
+;			STA.W $1B88|!addr		;/ message box is expanding
+;	
+;		.NormalLevel
+;			RTL
 	HorizontalLevelHorizontalLimits:	;>JML from $00F73C
 		;A: 16-bit
 		LDA !Freeram_ScrollLimitsFlag

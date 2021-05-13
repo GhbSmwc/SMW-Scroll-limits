@@ -48,7 +48,7 @@ ScrollLimitMain:
 					CMP #$03
 					BNE ....ScrollWithoutFreeze
 					LDA #$0B
-					STA $71
+					;STA $71
 					STA $9D					;>Freeze
 					STA $13FB|!addr
 					....ScrollWithoutFreeze
@@ -84,7 +84,7 @@ ScrollLimitMain:
 				CMP #$03
 				BNE ...NotSetToFrozen
 				STZ $9D
-				STZ $71
+				;STZ $71
 				STZ $13FB|!addr
 				...NotSetToFrozen
 			LDA #$01				;\Reenable scrolling
