@@ -12,6 +12,16 @@ ScrollLimitMain:
 	LDA $13D4|!addr		;>Pause flag
 	ORA $1426|!addr		;>Seems like either transferring from $1A-$1D to $1462-$1465 (or vice versa) gets suspended during a message box.
 	BNE .Done
+	
+	.PlayerAnimationCheck
+		LDA $71
+		BEQ ..Allow		;\Allow either "normal-state" Mario or during a freeze
+		CMP #$0B		;|(when RAM $71 is $0B, code at $00cde8 is no longer executed)
+		BEQ ..Allow		;/
+		CMP #$01		;\Prevent triggering the flip screen effects during things like dying
+		BCS .Done		;/entering pipes and so on.
+	
+	..Allow
 	LDA !Freeram_ScrollLimitsFlag
 	BEQ .Done
 	CMP #$02
