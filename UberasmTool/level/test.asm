@@ -57,7 +57,7 @@ main:
 	LDA #$03 : STA $0C
 	JSL LibraryScrollLimits_SetScrollBorder
 	RTL
-;Scroll limit box attributes, each index is each screen area.
+;Scroll limit box attributes, each index is each screen area (the order also corresponds).
 ;Make sure the number of values all matches!
 ;
 ;Easy formula to calculate where the screen should be at:
