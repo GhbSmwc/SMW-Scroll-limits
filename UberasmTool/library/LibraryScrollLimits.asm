@@ -8,6 +8,18 @@
 ;of uberasm tool.
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Do scrolling effect.
+;;This itself only do the scrolling effects to move
+;;the screen to its destination during a transition.
+;;Output:
+;;-Carry: Clear if screen has not reached
+;; destination, otherwise set (for 1 frame-execution).
+;; Useful for codes to run for custom effects when
+;; the transition finishes. Not to be confused with
+;; "SetScrollBorder" which $0D is set at the beginning
+;; frame of the transition.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ScrollLimitMain:
 	LDA $13D4|!addr		;>Pause flag
 	ORA $1426|!addr		;>Seems like either transferring from $1A-$1D to $1462-$1465 (or vice versa) gets suspended during a message box.
@@ -77,6 +89,7 @@ ScrollLimitMain:
 				JSL DisplaceScreenSpeed				;/
 				JSL CheckScreenReachDestination			;\After moving the screen, snap if reached destination
 				BCS .ReachedDestination				;/as to prevent 1-frame going past target.
+				CLC
 				RTL
 		.ReachedDestination
 			..Unfreeze
@@ -98,6 +111,7 @@ ScrollLimitMain:
 			SEP #$20
 			LDA #$01				;\Reset itself so that this (block of code to reset state) does not run every frame.
 			STA !Freeram_ScrollLimitsFlag		;/
+			SEC
 			RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Adjust the target position to be centered with the player or be in-bounds
@@ -608,7 +622,8 @@ IdentifyWhichBorder:
 ;; code to run for 1 frame at the initial screen transition, such as changing
 ;; the music or other effects. Most likely you'll have to check $0D and
 ;; !Freeram_FlipScreenAreaIdentifier to identify which area you are
-;; transitioning to
+;; transitioning to. Not to be confused with "ScrollLimitMain" which triggers
+;; at the END of the transition.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 SetScrollBorder:
 	STZ $0D						;>Default screen transitioning to $00
