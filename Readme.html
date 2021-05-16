@@ -60,6 +60,10 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	and result graphical glitches) can still occur.</li>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go outside the level. Autoscroll generators have done this
 	so that the player cannot move the screen as they wish.</li>
+	<li>When the screen is at the bottommost of the level (with LM's &ldquo;Allow viewing full bottom row of tiles&rdquo; being checked in the &ldquo;Change Properties in Header&rdquo; dialog.), the screen's Y position is showing 1 pixel row
+	<b>beyond</b> the bottom of the level (for example: with the level dimension setting (horizontal level mode) set to <kbd>08: Level Height=02A tiles, Max H-Screens=15</kbd>), and have the camera position at <kbd>Y=$01C0</kbd>, you can see
+	last row of pixels at the bottom of the screen showing the top pixels of garbage/unloaded blocks. It seems that the screen display seems to be 1 pixel lower than the values presented in the SNES register $210E/RAM $1C/RAM $1464. The easy fix
+	is to simply move the custom border 1 pixel up (in this example, the Y position of the screen should be <kbd>$01BF</kbd>).</li>
 </ul>
 <h2 id="WhatYouNeed">What you need</h2>
 <ul>
@@ -156,6 +160,15 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 ;Scroll limit box attributes, each index is each screen area.
 ;Make sure the number of values all matches!
 ;
+;Note: If the screen can be at the bottommost of the level and with &ldquo;Allow viewing full bottom row of tiles&rdquo;
+;checked, it can show a row of pixels at the bottom of the screen of garbage/unloaded tiles. Therefore to avoid this, use
+;these formulas instead (it is the same, but after all calculations, it is subtracted by 1):
+;If the height is set to 0 (no room for moving the screen vertically)
+; YPos = (LM_CoordinateOfTopLeft_TopOrLeftmost_Screen*16)-1
+;If the height isn't 0:
+; Width = ((LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16)-1
+;
+;
 ;Easy formula to calculate where the screen should be at:
 ; LM_CoordinateOfTopLeft_TopOrLeftmost_Screen*16
 ; Where:
@@ -177,7 +190,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		dw $0000*16		;&gt;$00
 		dw $0015*16		;&gt;$01
 		dw $000B*16		;&gt;$02
-		dw $001C*16		;&gt;$03
+		dw ($001C*16)-1		;&gt;$03
 		dw $0000*16		;&gt;$04
 		dw $000C*16		;&gt;$05
 		dw $000C*16		;&gt;$06
@@ -185,13 +198,12 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		dw $0000*16		;&gt;$08
 		dw $0000*16		;&gt;$09
 ;Widths and heights. Easy formula if you want positions for both the top-lefts and bottom-rights.
-; (LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16
+; WidthOrHeights = (LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16
 ; Where:
-;  -LM_CoordinateOfTopLeft_TopOrLeftmost_Screen means the top left of the screen at the leftmost
+;  -LM_CoordinateOfTopLeft_TopOrLeftmost_Screen: means the top left of the screen at the leftmost
 ;   position possible, in block-coordinates (not pixel), either X or Y position
-;  -LM_CoordinateOfTopLeft_BottomOrRightmost_Screen means the top-left of the screen at the rightmost
+;  -LM_CoordinateOfTopLeft_BottomOrRightmost_Screen: means the top-left of the screen at the rightmost
 ;   position possible, in block-coordinates (not pixel), either X or Y position
-;
 	ScreenBoundsWidths:
 		dw ($0008-$0000)*16	;&gt;$00
 		dw ($0018-$0018)*16	;&gt;$01

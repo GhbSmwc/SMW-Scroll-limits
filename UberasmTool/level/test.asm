@@ -61,8 +61,17 @@ main:
 	LDA #$03 : STA $0C
 	JSL LibraryScrollLimits_SetScrollBorder
 	RTL
-;Scroll limit box attributes, each index is each screen area (the order also corresponds).
+;Scroll limit box attributes, each index is each screen area.
 ;Make sure the number of values all matches!
+;
+;Note: If the screen can be at the bottommost of the level and with “Allow viewing full bottom row of tiles”
+;checked, it can show a row of pixels at the bottom of the screen of garbage/unloaded tiles. Therefore to avoid this, use
+;these formulas instead (it is the same, but after all calculations, it is subtracted by 1):
+;If the height is set to 0 (no room for moving the screen vertically)
+; YPos = (LM_CoordinateOfTopLeft_TopOrLeftmost_Screen*16)-1
+;If the height isn't 0:
+; Width = ((LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16)-1
+;
 ;
 ;Easy formula to calculate where the screen should be at:
 ; LM_CoordinateOfTopLeft_TopOrLeftmost_Screen*16
@@ -85,7 +94,7 @@ main:
 		dw $0000*16		;>$00
 		dw $0015*16		;>$01
 		dw $000B*16		;>$02
-		dw $001C*16		;>$03
+		dw ($001C*16)-1		;>$03
 		dw $0000*16		;>$04
 		dw $000C*16		;>$05
 		dw $000C*16		;>$06
@@ -93,13 +102,12 @@ main:
 		dw $0000*16		;>$08
 		dw $0000*16		;>$09
 ;Widths and heights. Easy formula if you want positions for both the top-lefts and bottom-rights.
-; (LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16
+; WidthOrHeights = (LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16
 ; Where:
-;  -LM_CoordinateOfTopLeft_TopOrLeftmost_Screen means the top left of the screen at the leftmost
+;  -LM_CoordinateOfTopLeft_TopOrLeftmost_Screen: means the top left of the screen at the leftmost
 ;   position possible, in block-coordinates (not pixel), either X or Y position
-;  -LM_CoordinateOfTopLeft_BottomOrRightmost_Screen means the top-left of the screen at the rightmost
+;  -LM_CoordinateOfTopLeft_BottomOrRightmost_Screen: means the top-left of the screen at the rightmost
 ;   position possible, in block-coordinates (not pixel), either X or Y position
-;
 	ScreenBoundsWidths:
 		dw ($0008-$0000)*16	;>$00
 		dw ($0018-$0018)*16	;>$01
