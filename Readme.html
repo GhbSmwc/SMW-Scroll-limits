@@ -287,9 +287,9 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		until it goes negative (X/Y = $FF, for example) and exits).</li><br>
 		
 		<li>
-			Layer 2 XY positioning may suddenly jump on the first frame after the level was loaded, if the player spawns at a position the screen would be outside the scroll borders. This is due to the stuff being executed in this order:
+			Layer 2 XY positioning may suddenly jump on the first frame after the level was loaded, if the player spawns at a position the screen would be outside the custom scroll borders. This is due to the stuff being executed in this order:
 			<ol>
-			<li>
+				<li>
 				<kbd>$00f79d</kbd>: LM's hijack to use its own layer 2 scrolling code, this is executed once during a black screen (not every frame):
 <table><tr><td><pre>;Note about what these RAMs are:
 $1413 [1 byte]: Horizontal BG scrolling rate
@@ -346,10 +346,12 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 	;dw $836D             ;&gt;108394 (Index $0A); when $1414 == $05 (slow 3?)
 	;dw $836C             ;&gt;108396 (Index $0C); when $1414 == $06 (slow 4?)
 	;dw $836A             ;&gt;108398 (Index $0E); when $1414 == $07 (slow 5?)</pre></td></tr></table>
-			</li><br>
-			<li>Uberasm tool's level <kbd>load</kbd> code.</li><br>
-			<li>A few frames later, executes SMW's scrolling code routine (both Mario moving the screen as well as the scrolling limits), such as <kbd>$00F893</kbd>.</li><br>
+				</li><br>
+				<li>Uberasm tool's level <kbd>load</kbd> code.</li><br>
+				<li>A few frames later, executes SMW's scrolling code routine (both Mario moving the screen as well as the scrolling limits), such as <kbd>$00F893</kbd>.</li><br>
+				<li>A frame afterwards, <kbd>$00f79d</kbd> is executed again, realized layer 1 XY pos has been changed, causing the layer 2 background to jump.</li><br>
 			</ol>
-			Therefore, LM will set the layer 2 XY pos, using layer 1 XY pos that was BEFORE it was moved to be within bounds.
+			Therefore, LM will set the layer 2 XY pos, using layer 1 XY pos that was BEFORE it was moved to be within bounds, a frame afterwards, layer 1 XY pos got updated (now in-bounds) and
+			the background XY pos update to use that new layer 1 position.
 		</li>
 	</ul>

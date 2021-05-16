@@ -26,7 +26,10 @@ load:
 	JSL LibraryScrollLimits_ForceScreenWithinLimits
 	REP #$20
 	;Stuff you may have to fiddle around so that the background does not glitch or suddenly move when the level fully loads.
-	;Using $1A-$21 does not work, so use $1462-$1469 instead.
+	;Using $1A-$21 does not work on uberasm tool, so use $1462-$1469 instead (the takes $1462-$1469 and transfer them to $1A-$21).
+	;See the readme on about backgrounds. An easy method on finding the behavior of layer 2 positioning is by wait until layer 2 jumps,
+	;then set a breakpoint at $00f79d and see how it is executed (using the debugger's "step" function). By mimicking that instruction
+	;here, it should ensure layer 2 is positioned correctly before it becomes visible.
 		;Layer 2 X position. Number of LSR is the scrolling rate:
 		;No code = None
 		;None = constant
