@@ -4,20 +4,6 @@ load:
 	LDA #$02
 	STA !Freeram_DisableBarrier
 	STA !Freeram_ScrollLimitsFlag
-	REP #$20
-	;Stuff you may have to fiddle around so that the background does not glitch or suddenly move
-		;Layer 2 Y offset from layer 1
-			;LDA $1417|!addr					;>Fix layer 2 being 1 tile lower than it should
-			;CLC
-			;ADC #$0010
-			;STA $1417|!addr
-		;Layer 2 X position. Number of LSR is the scrolling rate:
-		;None = constant
-		;LSR #1 = variable
-			LDA $1462|!addr
-			LSR
-			STA $1466|!addr
-	SEP #$20
 	LDA.b #ScreenBoundsXPositions : STA $00
 	LDA.b #ScreenBoundsXPositions>>8 : STA $01
 	LDA.b #ScreenBoundsXPositions>>16 : STA $02
@@ -38,6 +24,24 @@ load:
 	STA $0C
 	JSL LibraryScrollLimits_SetScrollBorder
 	JSL LibraryScrollLimits_ForceScreenWithinLimits
+	REP #$20
+	;Stuff you may have to fiddle around so that the background does not glitch or suddenly move when the level fully loads.
+	;Using $1A-$21 does not work, so use $1462-$1469 instead.
+		;Layer 2 X position. Number of LSR is the scrolling rate:
+		;No code = None
+		;None = constant
+		;LSR #1 = variable
+			LDA $1462|!addr
+			LSR
+			STA $1466|!addr
+		;Layer 2 Y position, similar to above but also uses $1417 to offset. Note that since each level entrances may have their own layer 2 Y offset,
+		;you may have to add a check here to determine which offset to use.
+			LDA $1464|!addr
+			LSR
+			CLC
+			ADC $1417|!addr
+			STA $1468|!addr
+	SEP #$20
 	RTL
 main:
 	LDA.b #ScreenBoundsXPositions : STA $00

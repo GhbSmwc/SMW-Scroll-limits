@@ -269,6 +269,75 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		<li>And now you are done</li>
 	</ol>
 	<h4>Note using in a level</h2>
-	<p>If the areas overlap, and the player is in that area, whatever last on the table list the player is in will take precedence and overrides any borders before it on the table, as the routine, like most codes uses a
-	<a href="https://ersanio.gitbook.io/assembly-for-the-snes/deep-dives/techniques#looping">negative check loop</a> (a loop that an index starts with a specified number besides 0, and in that loop, the index decrements
-	until it goes negative (X/Y = $FF, for example) and exits).</p>
+	<ul>
+		<li>If the areas overlap, and the player is in that area, whatever last on the table list the player is in will take precedence and overrides any borders before it on the table, as the routine, like most codes uses a
+		<a href="https://ersanio.gitbook.io/assembly-for-the-snes/deep-dives/techniques#looping">negative check loop</a> (a loop that an index starts with a specified number besides 0, and in that loop, the index decrements
+		until it goes negative (X/Y = $FF, for example) and exits).</li><br>
+		
+		<li>
+			Layer 2 XY positioning may suddenly jump on the first frame after the level was loaded, if the player spawns at a position the screen would be outside the scroll borders. This is due to the stuff being executed in this order:
+			<ol>
+			<li>
+				<kbd>$00f79d</kbd>: LM's hijack to use its own layer 2 scrolling code, this is executed once during a black screen (not every frame):
+<table><tr><td><pre>;Note about what these RAMs are:
+$1413 [1 byte]: Horizontal BG scrolling rate
+$1414 [1 byte]: Vertical BG scrolling rate
+$1417 [2 bytes]: Layer 2 Y offset, after processing its scrolling rate.
+$1A or $1462 [2 bytes]: Layer 1 X pos (or &ldquo;screen position&rdquo; within the level)
+$1C or $1464 [2 bytes]: Layer 1 Y pos (or &ldquo;screen position&rdquo; within the level)
+$1E or $1466 [2 bytes]: Layer 2 X pos
+$20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
+<table><tr><td><pre>	;Note that the address may be different from yours, since they occupy freespace.
+	;This is tested using LM v3.21.
+	;00f79d jml $108350   ;\$1413 and $1414: determine what scrolling rate for horizontal and vertical
+	;108350 lda $1413     ;|
+	;108353 asl a         ;|\Both $1413 and $1414 are doubled since the values to jump are 16-bit addresses.
+	;108354 tax           ;||
+	;108355 xba           ;||
+	;108356 tay           ;//
+	;108357 lda $1a       ;&gt;Layer 1 X pos
+	;108359 jmp ($837a,x) ;&gt;This jumps to one of the LSR below, which determines the rate of horizontal scrolling
+	;10835C lsr a         ;\Take layer 1 X pos, divide by 2**n, and store that number into layer 2 X pos
+	;10835D lsr a         ;|Layer2XPos = Layer1XPos / (2**n)
+	;10835E lsr a         ;|
+	;10835F lsr a         ;|
+	;108360 lsr a         ;|
+	;108361 lsr a         ;|
+	;108362 sta $1e       ;/
+	;108364 tyx           ;\Do the same thing but Y position, this time, with an offset in $1417.
+	;108365 lda $1c       ;|Layer2YPos = Layer1YPos / (2**n) + ValueInRAM_1417
+	;108367 jmp ($838a,x) ;|
+	;10836a lsr a         ;|
+	;10836b lsr a         ;|
+	;10836c lsr a         ;|
+	;10836d lsr a         ;|
+	;10836e lsr a         ;|
+	;10836f lsr a         ;|
+	;108370 clc           ;|
+	;108371 adc $1417     ;|
+	;108374 sta $20       ;/
+	;108376 jml $00f7c2   ;&gt;Return to SMW code
+	;;[...]
+	;10837a:
+	;;These contain the word (16-bit) address to jump to one of the LSRs.
+	;dw $8364             ;&gt;$10837a (Index $00); when $1413 == $00 (none)
+	;dw $8362             ;&gt;$10837c (Index $02); when $1413 == $01 (constant)
+	;dw $8361             ;&gt;$10837e (Index $04); when $1413 == $02 (variable)
+	;;[...]
+	;10838a:
+	;;These contain the word (16-bit) address to jump to one of the LSRs, same as above but for $1414.
+	;dw $8376             ;&gt;10838a (Index $00); when $1414 == $00 (none)
+	;dw $8370             ;&gt;10838c (Index $02); when $1414 == $01 (constant)
+	;dw $836F             ;&gt;10838e (Index $04); when $1414 == $02 (variable)
+	;dw $836B             ;&gt;108390 (Index $06); when $1414 == $03 (slow)
+	;dw $836E             ;&gt;108392 (Index $08); when $1414 == $04 (slow 2)
+	;dw $836D             ;&gt;108394 (Index $0A); when $1414 == $05 (slow 3?)
+	;dw $836C             ;&gt;108396 (Index $0C); when $1414 == $06 (slow 4?)
+	;dw $836A             ;&gt;108398 (Index $0E); when $1414 == $07 (slow 5?)</pre></td></tr></table>
+			</li><br>
+			<li>Uberasm tool's level <kbd>load</kbd> code.</li><br>
+			<li>A few frames later, executes SMW's scrolling code routine (both Mario moving the screen as well as the scrolling limits), such as <kbd>$00F893</kbd>.</li><br>
+			</ol>
+			Therefore, LM will set the layer 2 XY pos, using layer 1 XY pos that was BEFORE it was moved to be within bounds.
+		</li>
+	</ul>
