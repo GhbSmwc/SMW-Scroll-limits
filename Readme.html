@@ -191,7 +191,43 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			</ul>
 			Thankfully assemblers allow putting a formula (such as Asar), from my testing, make sure they do not have spaces.
 		</li>
+		<li>
+			Have an ASM code using this template. This assumes you are using uberasm tool's level:
+<table><tr><td><pre>incsrc "../ScrollLimitsDefines/Defines.asm"
+;^this may be different depending on where you place the defines folder. It is a
+;file path to obtain the defines so that the assembler knows what these defines are.
+
+	;These defines are separate from the seperate defines file since this apply to a specific level:
+		!PerLevelScrollLimitXPosition = ($000E)*16
+		!PerLevelScrollLimitYPosition = ($0004)*16
+		!PerLevelBorderWidth = ($001E-$000E)*16
+		!PerLevelBorderHeight = ($0008-$0004)*16
+	
+	REP #$20
+	LDA #!PerLevelScrollLimitXPosition
+	STA !Freeram_ScrollLimitsBoxXPosition
+	LDA #!PerLevelScrollLimitYPosition
+	STA !Freeram_ScrollLimitsBoxYPosition
+	LDA #!PerLevelBorderWidth
+	STA !Freeram_ScrollLimitsAreaWidth
+	LDA #!PerLevelBorderHeight
+	STA !Freeram_ScrollLimitsAreaHeight
+	SEP #$20
+	RTL</pre></td></tr></table><br>
+
+			Do note that this <b>sets the screen position</b>, when the player attempts to move the screen, so screen jumping can occur and display glitched (unloaded) layer 1 and 2 graphics.
+			Use this code during level loading is recommended.<br><br>
+			
+			Furthermore, if you have borders that can turn on/off, <b>both</b> ways can cause the screen to jump within bounds or jump to position so that the static camera region is on the player.<br><br>
+			
+			To avoid screen jumping, I recommend setting <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$02</kbd> (screen gradually scrolls to be within bounds closest to the player) or <kbd>$03</kbd> (same as <kbd>$02</kbd>
+			but also temporally freezes the game). Don't forget to set <kbd>$1411</kbd> and <kbd>$1412</kbd> to zero just in case.
+		</li>
 	</ol>
+	<p>
+		Here is an example, using the sample code previously mentioned:<br>
+		<img src="readme_files/SampleScrollLimit.png"><br>
+	</p>
 <h2><a href="#FlipScreenEffect_Back" id="FlipScreenEffect">^</a>How to have a flip-screen effect in a level</h2>
 <p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one.</p>
 <h2>Data table format</h2>

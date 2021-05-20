@@ -2,7 +2,7 @@
  ;[1 byte] Flag of scroll limits:
  ;$00 = Off (scroll within the main level limits)
  ;$01 = On
- ;$02 = Camera gets scrolled into bounds.
+ ;$02 = Camera gets scrolled into bounds, to the position closest to the player.
  ;$03 = Same as above but freezes mario and sprites by setting $13FB and $9D.
   if !sa1 == 0
    !Freeram_ScrollLimitsFlag = $58
