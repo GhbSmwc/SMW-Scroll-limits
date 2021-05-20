@@ -9,7 +9,7 @@
   else
    !Freeram_ScrollLimitsFlag = $58
   endif
- ;[2 bytes each] Scroll boundaries. These RAMs themselves represents the top and left border.
+ ;[2 bytes each] Scroll boundary positions, in pixels. These RAMs themselves represents the top and left border.
  ;They also represent the position of the scroll area since these are the "origin position"
  ;of the zone. The right and bottom boundaries are actually measured as the width and height,
  ;measuring how far the screen can scroll rightwards and downwards (in units of pixels, not whole screens)
@@ -26,7 +26,7 @@
     !Freeram_ScrollLimitsBoxYPosition = $62
    endif
   ;[2 bytes each] Dimensions (extends rightwards and downwards when you increase
-  ;the width and height.) NOTE: This is how far, the top-left of the screen can move
+  ;the width and height.), in pixels. NOTE: This is how far, the top-left of the screen can move
   ;from the top-left of the scroll limits. Therefore the right and bottom edge of
   ;the screen extends by 256/224 pixels beyond here.
   ;(Example: A room width of $0000 means 256-pixel wide area)

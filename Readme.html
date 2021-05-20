@@ -125,7 +125,18 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		</ol>
 	</ol>
 <h2><a href="#LevelUsage_Back" id="LevelUsage">^</a>How to use them in a level</h2>
-	<p>With these installed (properly) you can now set your own borders. Keep these information in mind:</p>
+	<p>
+		This is pretty easy, we need these types of information for its effects to apply:
+		<ul>
+			<li>Enabling the borders by setting <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$01</kbd>. Note that values <kbd>$02+</kbd> are reserved for the flip-screen effect not handled by the patch itself.</li>
+			
+			<li>X and Y position (in pixels), which are RAM used under the defines
+			<kbd>!Freeram_ScrollLimitsBoxXPosition</kbd> and <kbd>!Freeram_ScrollLimitsBoxYPosition</kbd>.</li>
+			
+			<li>Width and height (in pixels), which are RAM used in the defines <kbd>!Freeram_ScrollLimitsAreaWidth</kbd> and <kbd>!Freeram_ScrollLimitsAreaHeight</kbd>.</li>
+		</ul>
+	</p>
+	<p>You can now set your own borders. Keep these information in mind:</p>
 	<ul>
 		<li><font color="grey">Grey</font> means outside the level boundaries</li>
 		<li><font color="blue">blue</font> means inside the level boundaries</li>
@@ -136,10 +147,12 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<h3>Scroll stopping positions info</h3>
 	<ul>
 		<li>Ram address defined in <kbd>!Freeram_ScrollLimitsBoxXPosition</kbd> and <kbd>!Freeram_ScrollLimitsBoxYPosition</kbd> represent the location of this
-		&ldquo;area&rdquo;, meaning all 4 &ldquo;borders&rdquo; will move when these XY position gets changed.<br>
-		<img src="readme_files/LevelAndGameScreen.png"><br>
-		Almost everything have their origin point on their top-left corner. This is no exception here as well.</li>
-		<li>Soo, how the right and bottom borders are placed then? Well, it takes the X/Y position, add by the value by Width/Height (in pixels) and that will be
+		&ldquo;area&rdquo;, meaning all 4 &ldquo;borders&rdquo; will move when these XY position gets changed.<br><br>
+		
+		Now keep in mind, almost everything have their origin position at the top-left of some kind of box, the screen is no exception:<br>
+		<img src="readme_files/LevelAndGameScreen.png"><br></li>
+		<li>Soo, how the right and bottom borders are placed then? Well, it takes the X/Y position, add by the value by Width/Height, in pixels (stored in
+		RAM defined as <kbd>!Freeram_ScrollLimitsAreaWidth</kbd> and <kbd>!Freeram_ScrollLimitsAreaHeight</kbd>) and that will be
 		the right and bottom borders position:<br>
 		<img src="readme_files/ScrollLimitsBox.png"></li>
 		<li>The top and left is pretty obvious on where the screen will stop at:<br>
@@ -149,6 +162,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		</li>
 	</ul>
 <h2><a href="#FlipScreenEffect_Back" id="FlipScreenEffect">^</a>How to have a flip-screen effect in a level</h2>
+<p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one.</p>
 <h2>Data table format</h2>
 	<ul>
 		<li>
