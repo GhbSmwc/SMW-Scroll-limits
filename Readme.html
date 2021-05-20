@@ -138,11 +138,11 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	</p>
 	<p>You can now set your own borders. Keep these information in mind:</p>
 	<ul>
-		<li><font color="grey">Grey</font> means outside the level boundaries</li>
-		<li><font color="blue">blue</font> means inside the level boundaries</li>
-		<li><font color="cyan">cyan</font> means the game screen</li>
-		<li><font color="#800000">red</font> means the boundaries specified by the RAM the patch uses</li>
-		<li><font color="orange">orange</font> means the actual scrolling stopping position for the bottom and right borders</li>
+		<li><font color="grey">Grey</font> means outside the level boundaries.</li>
+		<li><font color="blue">blue</font> means inside the level boundaries.</li>
+		<li><font color="cyan">cyan</font> means the game screen.</li>
+		<li><font color="#800000">red</font> means the boundaries specified by the RAM the patch uses.</li>
+		<li><font color="orange">orange</font> means the actual scrolling stopping position for the bottom and right borders, relation to the screen's bottom and right borders.</li>
 	</ul>
 	<h3>Scroll stopping positions info</h3>
 	<ul>
@@ -161,6 +161,37 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		<img src="readme_files/RightAndBottom.png"><br>
 		</li>
 	</ul>
+	<h4>Setting the borders up</h4>
+	<p>
+		Lunar Magic thankfully have this feature of &ldquo;Game view screen&rdquo; (found in the menubar on <kbd>view</kbd>). Have that, along with the 16x16 block
+		coordinate display at the bottom-left corner (to convert block-coordinates to pixel, simply multiply them by 16 (<kbd>$10</kbd>) (example:
+		$0002,$0003 in block coordinates is $0020,$0030 in pixel-coordinates)). Also note that LM versions before 3.03 (2019-04-01) displays the coordinates in decimal,
+		while on and after 3.03 displays them in hex.
+	</p>
+	<ol>
+		<li>
+			Obtain the X/Y positions by placing the screen display on LM at the top-leftmost area you want to place your limits at (make sure it is
+			aligned with block grid). Now hover your mouse on the top-leftmost block that is at the top-left of the screen. We now have the X and Y
+			position of the area. Remember that LM shows the coordinates in units of 16x16 blocks, not pixels, so to convert to pixel you multiply these by 16.
+		</li>
+		<li>
+			Do the exact same thing, but on the bottom-rightmost. Obtain the coordinate of the block that is on the top-leftmost of that screen.
+		</li>
+		<li>
+			After obtaining those stuff, we can calculate to find the widths and heights:
+			<kbd>WidthOrHeights = (LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16</kbd><br>
+			Where:
+			<ul>
+				<li>
+					<kbd>LM_CoordinateOfTopLeft_TopOrLeftmost_Screen</kbd>: means the top left of the screen at the leftmost position possible, in block-coordinates (not pixel), either X or Y position
+				</li>
+				<li>
+					<kbd>LM_CoordinateOfTopLeft_BottomOrRightmost_Screen</kbd>: means the top-left of the screen at the rightmost position possible, in block-coordinates (not pixel), either X or Y position
+				</li>
+			</ul>
+			Thankfully assemblers allow putting a formula (such as Asar), from my testing, make sure they do not have spaces.
+		</li>
+	</ol>
 <h2><a href="#FlipScreenEffect_Back" id="FlipScreenEffect">^</a>How to have a flip-screen effect in a level</h2>
 <p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one.</p>
 <h2>Data table format</h2>
