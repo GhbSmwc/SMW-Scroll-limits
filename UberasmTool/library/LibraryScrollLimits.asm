@@ -8,6 +8,17 @@
 ;of uberasm tool.
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
+;Subroutines include:
+;-ScrollLimitMain
+;-ClampDestinationPosition
+;-CheckScreenReachDestination
+;-DisplaceScreenSpeed
+;-Aiming
+;-IdentifyWhichBorder
+;-SetScrollBorder
+;-ForceScreenWithinLimits
+;-ForceScreenWithinIdentifiedLimits
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Do scrolling effect.
 ;;This itself only do the scrolling effects to move
@@ -664,10 +675,48 @@ SetScrollBorder:
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Force screen to be in bounds (this will instantly set the XY pos of the
+;;screen, and to be used during level load (under "load:")). This not to be
+;;used for the flip-screen effect, use the other subroutine after this one.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+ForceScreenWithinLimits:
+	REP #$20
+	.Horiz
+		..LeftSide
+			LDA !Freeram_ScrollLimitsBoxXPosition
+			CMP $1462|!addr
+			BMI ..RightSide
+			STA $1462|!addr
+			STA $1A
+		..RightSide
+			CLC
+			ADC !Freeram_ScrollLimitsAreaWidth
+			CMP $1462|!addr
+			BPL .Vert
+			STA $1462|!addr
+			STA $1A
+	.Vert
+		..Top
+			LDA !Freeram_ScrollLimitsBoxYPosition
+			CMP $1464|!addr
+			BMI ..Bottom
+			STA $1464|!addr
+			STA $1C
+		..Bottom
+			CLC
+			ADC !Freeram_ScrollLimitsAreaHeight
+			CMP $1464|!addr
+			BPL .Done
+			STA $1464|!addr
+			STA $1C
+	.Done
+	SEP #$20
+	RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Force screen to be in identified bounds (this will instantly set the XY pos of the
 ;;screen, and to be used during level load (under "load:")). Call this AFTER
 ;;calling "JSL LibraryScrollLimits_IdentifyWhichBorder".
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-ForceScreenWithinLimits:
+ForceScreenWithinIdentifiedLimits:
 	JSL SetScrollBorder
 	JSL ClampDestinationPosition		;\Fix a potential bug that can occur
 	REP #$20				;|when teleporting within the same level

@@ -165,7 +165,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<p>
 		Lunar Magic thankfully have this feature of &ldquo;Game view screen&rdquo; (found in the menubar on <kbd>view</kbd>). Have that, along with the 16x16 block
 		coordinate display at the bottom-left corner (to convert block-coordinates to pixel, simply multiply them by 16 (<kbd>$10</kbd>) (example:
-		$0002,$0003 in block coordinates is $0020,$0030 in pixel-coordinates)). Also note that LM versions before 3.03 (2019-04-01) displays the coordinates in decimal,
+		<kbd>($0002,$0003)</kbd> in block coordinates is <kbd>($0020,$0030)</kbd> in pixel-coordinates)). Also note that LM versions before 3.03 (2019-04-01) displays the coordinates in decimal,
 		while on and after 3.03 displays them in hex.
 	</p>
 	<ol>
@@ -192,27 +192,30 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			Thankfully assemblers allow putting a formula (such as Asar), from my testing, make sure they do not have spaces.
 		</li>
 		<li>
-			Have an ASM code using this template. This assumes you are using uberasm tool's level:
+			Have an ASM code using this template. This assumes you are using uberasm tool's level under load/init/main label:
 <table><tr><td><pre>incsrc "../ScrollLimitsDefines/Defines.asm"
 ;^this may be different depending on where you place the defines folder. It is a
 ;file path to obtain the defines so that the assembler knows what these defines are.
 
-	;These defines are separate from the seperate defines file since this apply to a specific level:
+	;These defines are separate from the defines file since this apply to a specific level:
 		!PerLevelScrollLimitXPosition = ($000E)*16
 		!PerLevelScrollLimitYPosition = ($0004)*16
 		!PerLevelBorderWidth = ($001E-$000E)*16
 		!PerLevelBorderHeight = ($0008-$0004)*16
-	
+	load:
+	LDA #$01					;\Enable borders
+	STA !Freeram_ScrollLimitsFlag			;/
 	REP #$20
-	LDA #!PerLevelScrollLimitXPosition
-	STA !Freeram_ScrollLimitsBoxXPosition
-	LDA #!PerLevelScrollLimitYPosition
-	STA !Freeram_ScrollLimitsBoxYPosition
-	LDA #!PerLevelBorderWidth
-	STA !Freeram_ScrollLimitsAreaWidth
-	LDA #!PerLevelBorderHeight
-	STA !Freeram_ScrollLimitsAreaHeight
+	LDA #!PerLevelScrollLimitXPosition		;\Setup borders
+	STA !Freeram_ScrollLimitsBoxXPosition		;|
+	LDA #!PerLevelScrollLimitYPosition		;|
+	STA !Freeram_ScrollLimitsBoxYPosition		;|
+	LDA #!PerLevelBorderWidth			;|
+	STA !Freeram_ScrollLimitsAreaWidth		;|
+	LDA #!PerLevelBorderHeight			;|
+	STA !Freeram_ScrollLimitsAreaHeight		;/
 	SEP #$20
+	JSL LibraryScrollLimits_ForceScreenWithinLimits	;&gt;Call this AFTER setting up the borders.
 	RTL</pre></td></tr></table><br>
 
 			Do note that this <b>sets the screen position</b>, when the player attempts to move the screen, so screen jumping can occur and display glitched (unloaded) layer 1 and 2 graphics.
