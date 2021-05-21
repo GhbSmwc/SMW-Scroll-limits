@@ -32,7 +32,7 @@
 <h2>Introduction</h2>
 <p>This ASM package enables you to set custom boundaries of your level.</p>
 
-<p>Also comes with a feature to have Megaman/Celeste/Zelda-styled scroll areas where the camera will not cross between areas unless you go to that area.</p>
+<p>Also comes with a feature to have a <abbr title="Flip screen effect">Megaman/Celeste/Zelda-styled scroll areas where the camera will not cross between areas unless you go to that area</abbr>.</p>
 
 <p>Normally, you would think this is redundant because there exist other codes that stops the screen scrolling at a certain XY position, say one
 found in the <a href="https://www.smwcentral.net/?p=viewthread&t=62286">ASM library</a>, however this ASM package offers more flexibility, and that
@@ -65,8 +65,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	
 	</li>
 	<li>RAM address <kbd>$13F2</kbd> is no longer cleared by <kbd>$00F8A7</kbd>.</li>
-	<li>Anytime you want to trigger a &ldquo;<abbr title="The effect you see in Megaman games, areas separated by scroll limits that the screen will not go past unless the player triggers something like opening a door or touching the edge of an area">flip screen</abbr>&rdquo;
-	effect, I <b>highly</b> recommend setting <kbd>$1411</kbd> and/or <kbd>$1412</kbd> to zero (disable horizontal and/or vertical scrolling). Even though uberasm tool already
+	<li>Anytime you want to trigger a flip-screen effect, I <b>highly</b> recommend setting <kbd>$1411</kbd> and/or <kbd>$1412</kbd> to zero (disable horizontal and/or vertical scrolling). Even though uberasm tool already
 	STZs it, if you don't disable horizontal and/or scrolling and your code is executed, then runs <kbd>$00F70D</kbd> or <kbd>$00F75C</kbd>, before executing uberasm tool's gamemode 14, screen-jumping (screen changes position instantly
 	and result graphical glitches) can still occur.</li>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go outside the level. Autoscroll generators have done this
@@ -96,6 +95,12 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			to scroll down to show the last row of blocks at the very bottom of the level, on &ldquo;Change Properties in Header&rdquo;.</li>
 			<li>Vertical levels: The last screen on the horizontal axis is <b>always</b> at X = <kbd>$0100</kbd> (since vertical level settings are always 2 screens wide). The bottom position is at <kbd>LastScreenYPosition = (ValueIn_RAM_5F - 1) * 256</kbd>.</li>
 		</ul>
+	</li>
+</ul>
+<h3>Recommended</h3>
+<ul>
+	<li>
+		<a href="https://github.com/devinacker/bsnes-plus">Bsnes plus</a>, features a debugger, mainly to figure out where to position layer 2 <a href="#Layer2JumpAfterLoad">so that it doesn't jump after the level loads if the player's screen is outside the scroll border</a>.
 	</li>
 </ul>
 <h2><a href="#InterestingFacts_Back" id="InterestingFacts">^</a>Interesting facts</h2>
@@ -235,8 +240,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		Now note: If you have layer 2 suddenly jumping when the level load has finished, see <a href="#Layer2JumpAfterLoad">this information</a>
 	</p>
 <h2><a href="#FlipScreenEffect_Back" id="FlipScreenEffect">^</a>How to have a flip-screen effect in a level</h2>
-<p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one.</p>
-<h2>Data table format</h2>
+<p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one. You want to have a code and table like this (and feel free to use it):</p>
 	<ul>
 		<li>
 <table><tr><td><pre>main:
@@ -388,7 +392,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		until it goes negative (X/Y = $FF, for example) and exits).</li><br>
 		
 		<li>
-			<span id="Layer2JumpAfterLoad">Layer 2 XY positioning may suddenly jump on the first frame after the level was loaded, if the player spawns at a position the screen would be outside the custom scroll borders. This is due to the stuff being executed in this order:
+			<span id="Layer2JumpAfterLoad">Layer 2 XY positioning may suddenly jump on the first frame after the level was loaded</span>, if the player spawns at a position the screen would be outside the custom scroll borders. This is due to the stuff being executed in this order:
 			<ol>
 				<li>
 				<kbd>$00f79d</kbd>: LM's hijack to use its own layer 2 scrolling code, this is executed once during a black screen (not every frame):
@@ -456,8 +460,8 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 			Therefore, LM will set the layer 2 XY pos, using layer 1 XY pos that was BEFORE it was moved to be within bounds, a frame afterwards, layer 1 XY pos got updated (now in-bounds) and
 			the background XY pos update to use that new layer 1 position.<br><br>
 			
-			One way to fix this is by after Layer 2 has been shifted, using a debugger (bsnes plus), set a breakpoint at address <kbd>$00f79d</kbd> under &lda;execute&rdquo;, and use the <kbd>step</kbd>
+			One way to fix this is by after Layer 2 has been shifted, using a debugger (bsnes plus), set a breakpoint at address <kbd>$00f79d</kbd> under &ldquo;execute&rdquo;, and use the <kbd>step</kbd>
 			function to see how the code is executed to calculate the position of layer 2. Try to mimic that using uberasm tool under the <kbd>level</kbd> under <kbd>load</kbd>. While the X position never
-			changes based on the player's level entrance, the Y position dues using <kbd>$1417</kbd>, so keep that in mind.
+			changes based on the player's level entrance, the Y position may vary using <kbd><a href="https://smwc.me/m/smw/ram/7E1417/">$1417</a></kbd>, so keep that in mind.
 		</li>
 	</ul>
