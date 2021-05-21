@@ -231,6 +231,9 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		Here is an example, using the sample code previously mentioned:<br>
 		<img src="readme_files/SampleScrollLimit.png"><br>
 	</p>
+	<p>
+		Now note: If you have layer 2 suddenly jumping when the level load has finished, see <a href="#Layer2JumpAfterLoad">this information</a>
+	</p>
 <h2><a href="#FlipScreenEffect_Back" id="FlipScreenEffect">^</a>How to have a flip-screen effect in a level</h2>
 <p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one.</p>
 <h2>Data table format</h2>
@@ -376,7 +379,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		dw ($000A-$0005)*16		;&gt;$00
 		dw ($000A-$0005)*16		;&gt;$01</pre></td></tr></table>
 		</li>
-		<li>And now you are done</li>
+		<li>And now you are done.</li>
 	</ol>
 	<h4>Note using in a level</h2>
 	<ul>
@@ -385,7 +388,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		until it goes negative (X/Y = $FF, for example) and exits).</li><br>
 		
 		<li>
-			Layer 2 XY positioning may suddenly jump on the first frame after the level was loaded, if the player spawns at a position the screen would be outside the custom scroll borders. This is due to the stuff being executed in this order:
+			<span id="Layer2JumpAfterLoad">Layer 2 XY positioning may suddenly jump on the first frame after the level was loaded, if the player spawns at a position the screen would be outside the custom scroll borders. This is due to the stuff being executed in this order:
 			<ol>
 				<li>
 				<kbd>$00f79d</kbd>: LM's hijack to use its own layer 2 scrolling code, this is executed once during a black screen (not every frame):
@@ -399,8 +402,9 @@ $1E or $1466 [2 bytes]: Layer 2 X pos
 $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 <table><tr><td><pre>	;Note that the address may be different from yours, since they occupy freespace.
 	;This is tested using LM v3.21.
-	;00f79d jml $108350   ;\$1413 and $1414: determine what scrolling rate for horizontal and vertical
-	;108350 lda $1413     ;|
+	;00f79d jml $108350   ;&gt;SMW's vanilla address
+	;[...]
+	;108350 lda $1413     ;\$1413 and $1414: determine what scrolling rate for horizontal and vertical
 	;108353 asl a         ;|\Both $1413 and $1414 are doubled since the values to jump are 16-bit addresses.
 	;108354 tax           ;||
 	;108355 xba           ;||
@@ -450,6 +454,10 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 				<li>A frame afterwards, <kbd>$00f79d</kbd> is executed again, realized layer 1 XY pos has been changed, causing the layer 2 background to jump.</li><br>
 			</ol>
 			Therefore, LM will set the layer 2 XY pos, using layer 1 XY pos that was BEFORE it was moved to be within bounds, a frame afterwards, layer 1 XY pos got updated (now in-bounds) and
-			the background XY pos update to use that new layer 1 position.
+			the background XY pos update to use that new layer 1 position.<br><br>
+			
+			One way to fix this is by after Layer 2 has been shifted, using a debugger (bsnes plus), set a breakpoint at address <kbd>$00f79d</kbd> under &lda;execute&rdquo;, and use the <kbd>step</kbd>
+			function to see how the code is executed to calculate the position of layer 2. Try to mimic that using uberasm tool under the <kbd>level</kbd> under <kbd>load</kbd>. While the X position never
+			changes based on the player's level entrance, the Y position dues using <kbd>$1417</kbd>, so keep that in mind.
 		</li>
 	</ul>
