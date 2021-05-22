@@ -53,35 +53,35 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<li>The patch (<kbd>ScrollLimitsPatch.asm</kbd>) obviously will hijack scrolling related codes (<kbd>$00F73C</kbd> (horizontal level limits for left and right borders), <kbd>$00F893</kbd>
 	(horizontal and vertical limits for top and bottom borders)). If you wish to have other scrolling-related patches such as my <a href="https://www.smwcentral.net/?p=section&a=details&id=26861">&ldquo;Center scroll&rdquo; patch</a>
 	or <a href="https://www.smwcentral.net/?p=section&a=details&id=17737">Vertical Camera Panning</a>. In these cases, you'll need to merge the ASM files (more specifically, not to use SMW's default scroll limits but
-	use this custom scroll limits patch's RAM that controls the limits). This patch itself just modifies the limits, nothing more.</li>
+	use this custom scroll limits patch's RAM that controls the limits). This patch itself just modifies the limits, nothing more.</li><br>
 	<li>SMW's horizontal scrolling is instant-- that it simply takes Mario's X position, take various calculations handled at <kbd>$00F73C</kbd> (which also handles the left and right limits), unlike vertical scrolling,
 	which that is handled at <kbd>$00F88F</kbd>, horizontal scrolling <b>instantly</b> sets the screen X position within the level rather than gradually incrementing/decrementing it. So these situations should be avoided that causes
 	layer 1 graphic glitches due to not giving it frames to load the columns of 16x16 tiles:
 		<ul>
-			<li>Teleporting the player, as in taking the player's X position (<kbd>$94</kbd>), add or subtract by some large number (greater than &plusmn;$0010) that results the player being &ldquo;teleported&rdquo; in long distances.</li>
+			<li>Teleporting the player, as in taking the player's X position (<kbd>$94</kbd>), add or subtract by some large number (greater than &plusmn;$0010) that results the player being &ldquo;teleported&rdquo; in long distances.</li><br>
 			<li>Have horizontal scrolling disabled (<kbd>$1411</kbd> set to $00), then enable horizontal scrolling while the player is outside the static camera region. This will cause the camera to jump to be centered
-			with the player</li>
+			with the player</li><br>
 		</ul>
 	
-	</li>
-	<li>RAM address <kbd>$13F2</kbd> is no longer cleared by <kbd>$00F8A7</kbd>.</li>
+	</li><br>
+	<li>RAM address <kbd>$13F2</kbd> is no longer cleared by <kbd>$00F8A7</kbd>.</li><br>
 	<li>Anytime you want to trigger a flip-screen effect, I <b>highly</b> recommend setting <kbd>$1411</kbd> and/or <kbd>$1412</kbd> to zero (disable horizontal and/or vertical scrolling). Even though uberasm tool already
 	STZs it, if you don't disable horizontal and/or scrolling and your code is executed, then runs <kbd>$00F70D</kbd> or <kbd>$00F75C</kbd>, before executing uberasm tool's gamemode 14, screen-jumping (screen changes position instantly
-	and result graphical glitches) can still occur.</li>
+	and result graphical glitches) can still occur.</li><br>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go outside the level. Autoscroll generators have done this
-	so that the player cannot move the screen as they wish.</li>
+	so that the player cannot move the screen as they wish.</li><br>
 	<li>When the screen is at the bottommost of the level (with LM's &ldquo;Allow viewing full bottom row of tiles&rdquo; being checked in the &ldquo;Change Properties in Header&rdquo; dialog.), the screen's Y position is showing 1 pixel row
 	<b>beyond</b> the bottom of the level (for example: with the level dimension setting (horizontal level mode) set to <kbd>08: Level Height=02A tiles, Max H-Screens=15</kbd>), and have the camera position at <kbd>Y=$01C0</kbd>, you can see
 	last row of pixels at the bottom of the screen showing the top pixels of garbage/unloaded blocks. It seems that the screen display seems to be 1 pixel lower than the values presented in the SNES register $210E/RAM $1C/RAM $1464. The easy fix
-	is to simply move the custom border 1 pixel up (in this example, the Y position of the screen should be <kbd>$01BF</kbd>).</li>
+	is to simply move the custom border 1 pixel up (in this example, the Y position of the screen should be <kbd>$01BF</kbd>).</li><br>
 </ul>
 <h2><a href="#WhatYouNeed_Back" id="WhatYouNeed">^</a>What you need</h2>
 <ul>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=13675">Sprite scroll fix</a>: SMW's system to check which scroll direction sprites should be able to spawn (<kbd>$55</kbd>/<kbd>$56</kbd>) is flawed, that it
 	check which side the player is located relative to the &ldquo;static camera region&rdquo; (<kbd>$142A</kbd>), rather than the actual scrolling of the screen. This bug only happens if you &ldquo;manually&rdquo; scroll the screen,
-	common method is by setting <kbd>$1411</kbd> to zero and incrementing/decrementing <kbd>$1462</kbd>, can cause sprites to spawn on the side of the screen that the screen is moving away from rather than towards, and failing to spawn.</li>
+	common method is by setting <kbd>$1411</kbd> to zero and incrementing/decrementing <kbd>$1462</kbd>, can cause sprites to spawn on the side of the screen that the screen is moving away from rather than towards, and failing to spawn.</li><br>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a>: Useful if you want such triggers that would trigger the flip-screen effect by touching the very edges of the screen, and also
-	prevent potential deaths caused by being at those edges of the screen.</li>
+	prevent potential deaths caused by being at those edges of the screen.</li><br>
 	<li>
 		ASM knowledge, if you're using other scrolling-related patches (like my previously mentioned &ldquo;center scroll&rdquo; patch), then there is a chance you'll have to modify them (and/or merge them if the hijacks overlap), especially if those patches have code that sets the scrolling limit itself:
 		<ul>
@@ -92,62 +92,62 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		Here is a hint: XY position top and left positions are <b>always</b> X/Y = <kbd>$0000</kbd>. The right and bottom limits are:
 		<ul>
 			<li>Horizontal levels (and any dimension settings): <kbd>LastScreenXPosition = (ValueIn_RAM_5E - 1) * 256</kbd>. The bottom position is stored in scratch RAM <kbd>$04</kbd> during around <kbd>$00F810</kbd>. Unlike <kbd>$13D7</kbd>, LM have a feature with an option to enable the screen
-			to scroll down to show the last row of blocks at the very bottom of the level, on &ldquo;Change Properties in Header&rdquo;.</li>
-			<li>Vertical levels: The last screen on the horizontal axis is <b>always</b> at X = <kbd>$0100</kbd> (since vertical level settings are always 2 screens wide). The bottom position is at <kbd>LastScreenYPosition = (ValueIn_RAM_5F - 1) * 256</kbd>.</li>
+			to scroll down to show the last row of blocks at the very bottom of the level, on &ldquo;Change Properties in Header&rdquo;.</li><br>
+			<li>Vertical levels: The last screen on the horizontal axis is <b>always</b> at X = <kbd>$0100</kbd> (since vertical level settings are always 2 screens wide). The bottom position is at <kbd>LastScreenYPosition = (ValueIn_RAM_5F - 1) * 256</kbd>.</li><br>
 		</ul>
-	</li>
+	</li><br>
 </ul>
 <h3>Recommended</h3>
 <ul>
 	<li>
 		<a href="https://github.com/devinacker/bsnes-plus">Bsnes plus</a>, features a debugger, mainly to figure out where to position layer 2 <a href="#Layer2JumpAfterLoad">so that it doesn't jump after the level loads if the player's screen is outside the scroll border</a>.
-	</li>
+	</li><br>
 </ul>
 <h2><a href="#InterestingFacts_Back" id="InterestingFacts">^</a>Interesting facts</h2>
 <ul>
 	<li>When horizontal and/or vertical scrolling are disabled (<kbd>$1411</kbd> and/or <kbd>$1412</kbd>), the boundaries (left or right for horizontal, top and bottom for vertical) are no longer running (it will not set the XY coordinate of
-	the screen to place it back in bounds).</li>
+	the screen to place it back in bounds).</li><br>
 </ul>
 <h2><a href="#Installation_Back" id="Installation">^</a>Installation</h2>
 	<ol>
-		<li>Defines</li>
+		<li>Defines</li><br>
 		<ol>
 			<li>Open <kbd>SMW-Scroll-limits/ScrollLimitsDefines/Defines.asm</kbd>, and make any necessary changes on it. There is a very high chance you'll need to do this if you have other ASM resources that uses freeram as well, as they
-			tend to &ldquo;overlap&rdquo; with the default RAMs the patch provided here uses. And yes, even the required patches <a href="#WhatYouNeed">listed on this document</a> needs to have its freeram defines changed to avoid issues.</li>
+			tend to &ldquo;overlap&rdquo; with the default RAMs the patch provided here uses. And yes, even the required patches <a href="#WhatYouNeed">listed on this document</a> needs to have its freeram defines changed to avoid issues.</li><br>
 		</ol>
-		<li>Patches</li>
+		<li>Patches</li><br>
 		<ol>
 			<li>Before you patch <kbd>ScrollLimitsPatch.asm</kbd> or other patches related to scrolling, open <kbd>ScrollLimitsPatch.asm</kbd> AND the other patches (specifically if they hijack scrolling-related code) and see the
 			<kbd>org $xxxxxx</kbd> would conflict. If they do, you'll need to merge them and potentially need to learn a little bit of ASM.<br><br>
 			
 			<kbd>ScrollLimitsPatch.asm</kbd> just modifies the behavior how scrolling limits work. If you say, install my &ldquo;Center Scroll&rdquo; patch, for example, edit the center scroll patch's scroll limits so that it first checks
-			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works (which means you'll need to learn about ASM).</li>
+			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works (which means you'll need to learn about ASM).</li><br>
 		</ol>
-		<li>Uberasm tool (installs the flip screen effect)</li>
+		<li>Uberasm tool (installs the flip screen effect)</li><br>
 		<ol>
-			<li>In <kbd>SMW-Scroll-limits/UberasmTool/</kbd>, place the files in their appropriate spots in uberasm tool's files. They are conveniently named.</li>
-			<li>Run the tool</li>
+			<li>In <kbd>SMW-Scroll-limits/UberasmTool/</kbd>, place the files in their appropriate spots in uberasm tool's files. They are conveniently named.</li><br>
+			<li>Run the tool</li><br>
 		</ol>
 	</ol>
 <h2><a href="#LevelUsage_Back" id="LevelUsage">^</a>How to use them in a level</h2>
 	<p>
 		This is pretty easy, we need these types of information for its effects to apply:
 		<ul>
-			<li>Enabling the borders by setting <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$01</kbd>. Note that values <kbd>$02+</kbd> are reserved for the flip-screen effect not handled by the patch itself.</li>
+			<li>Enabling the borders by setting <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$01</kbd>. Note that values <kbd>$02+</kbd> are reserved for the flip-screen effect not handled by the patch itself.</li><br>
 			
 			<li>X and Y position (in pixels), which are RAM used under the defines
-			<kbd>!Freeram_ScrollLimitsBoxXPosition</kbd> and <kbd>!Freeram_ScrollLimitsBoxYPosition</kbd>.</li>
+			<kbd>!Freeram_ScrollLimitsBoxXPosition</kbd> and <kbd>!Freeram_ScrollLimitsBoxYPosition</kbd>.</li><br>
 			
-			<li>Width and height (in pixels), which are RAM used in the defines <kbd>!Freeram_ScrollLimitsAreaWidth</kbd> and <kbd>!Freeram_ScrollLimitsAreaHeight</kbd>.</li>
+			<li>Width and height (in pixels), which are RAM used in the defines <kbd>!Freeram_ScrollLimitsAreaWidth</kbd> and <kbd>!Freeram_ScrollLimitsAreaHeight</kbd>.</li><br>
 		</ul>
 	</p>
 	<p>You can now set your own borders. Keep these information in mind:</p>
 	<ul>
-		<li><font color="grey">Grey</font> means outside the level boundaries.</li>
-		<li><font color="blue">blue</font> means inside the level boundaries.</li>
-		<li><font color="cyan">cyan</font> means the game screen.</li>
-		<li><font color="#800000">red</font> means the boundaries specified by the RAM the patch uses.</li>
-		<li><font color="orange">orange</font> means the actual scrolling stopping position for the bottom and right borders, relation to the screen's bottom and right borders.</li>
+		<li><font color="grey">Grey</font> means outside the level boundaries.</li><br>
+		<li><font color="blue">blue</font> means inside the level boundaries.</li><br>
+		<li><font color="cyan">cyan</font> means the game screen.</li><br>
+		<li><font color="#800000">red</font> means the boundaries specified by the RAM the patch uses.</li><br>
+		<li><font color="orange">orange</font> means the actual scrolling stopping position for the bottom and right borders, relation to the screen's bottom and right borders.</li><br>
 	</ul>
 	<h3>Scroll stopping positions info</h3>
 	<ul>
@@ -155,16 +155,16 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		&ldquo;area&rdquo;, meaning all 4 &ldquo;borders&rdquo; will move when these XY position gets changed.<br><br>
 		
 		Now keep in mind, almost everything have their origin position at the top-left of some kind of box, the screen is no exception:<br>
-		<img src="readme_files/LevelAndGameScreen.png"><br></li>
+		<img src="readme_files/LevelAndGameScreen.png"><br></li><br>
 		<li>Soo, how the right and bottom borders are placed then? Well, it takes the X/Y position, add by the value by Width/Height, in pixels (stored in
 		RAM defined as <kbd>!Freeram_ScrollLimitsAreaWidth</kbd> and <kbd>!Freeram_ScrollLimitsAreaHeight</kbd>) and that will be
 		the right and bottom borders position:<br>
-		<img src="readme_files/ScrollLimitsBox.png"></li>
+		<img src="readme_files/ScrollLimitsBox.png"></li><br>
 		<li>The top and left is pretty obvious on where the screen will stop at:<br>
 		<img src="readme_files/LeftAndTop.png"><br>
 		However, the bottom and right borders, they take the screen's origin position to limit instead of the right and bottom edge of the screen:<br>
 		<img src="readme_files/RightAndBottom.png"><br>
-		</li>
+		</li><br>
 	</ul>
 	<h4>Setting the borders up</h4>
 	<p>
@@ -178,10 +178,10 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			Obtain the X/Y positions by placing the screen display on LM at the top-leftmost area you want to place your limits at (make sure it is
 			aligned with block grid). Now hover your mouse on the top-leftmost block that is at the top-left of the screen. We now have the X and Y
 			position of the area. Remember that LM shows the coordinates in units of 16x16 blocks, not pixels, so to convert to pixel you multiply these by 16.
-		</li>
+		</li><br>
 		<li>
 			Do the exact same thing, but on the bottom-rightmost. Obtain the coordinate of the block that is on the top-leftmost of that screen.
-		</li>
+		</li><br>
 		<li>
 			After obtaining those stuff, we can calculate to find the widths and heights:
 			<kbd>WidthOrHeights = (LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16</kbd><br>
@@ -189,13 +189,13 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			<ul>
 				<li>
 					<kbd>LM_CoordinateOfTopLeft_TopOrLeftmost_Screen</kbd>: means the top left of the screen at the leftmost position possible, in block-coordinates (not pixel), either X or Y position
-				</li>
+				</li><br>
 				<li>
 					<kbd>LM_CoordinateOfTopLeft_BottomOrRightmost_Screen</kbd>: means the top-left of the screen at the rightmost position possible, in block-coordinates (not pixel), either X or Y position
-				</li>
+				</li><br>
 			</ul>
 			Thankfully assemblers allow putting a formula (such as Asar), from my testing, make sure they do not have spaces.
-		</li>
+		</li><br>
 		<li>
 			Have an ASM code using this template. This assumes you are using uberasm tool's level under load/init/main label:
 <table><tr><td><pre>incsrc "../ScrollLimitsDefines/Defines.asm"
@@ -230,7 +230,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			
 			To avoid screen jumping, I recommend setting <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$02</kbd> (screen gradually scrolls to be within bounds closest to the player) or <kbd>$03</kbd> (same as <kbd>$02</kbd>
 			but also temporally freezes the game). Don't forget to set <kbd>$1411</kbd> and <kbd>$1412</kbd> to zero just in case.
-		</li>
+		</li><br>
 	</ol>
 	<p>
 		Here is an example, using the sample code previously mentioned:<br>
@@ -360,8 +360,8 @@ WriteTableAddress:
 		<li>
 			With the coordinates in hand we have, in the example:
 			<ul>
-				<li>Leftmost X position: <kbd>$000E</kbd>, rightmost: <kbd>$001E</kbd></li>
-				<li>Topmost Y position: <kbd>$0005</kbd>, bottommost: <kbd>$000A</kbd></li>
+				<li>Leftmost X position: <kbd>$000E</kbd>, rightmost: <kbd>$001E</kbd></li><br>
+				<li>Topmost Y position: <kbd>$0005</kbd>, bottommost: <kbd>$000A</kbd></li><br>
 			</ul>
 			<kbd>zone 0</kbd>'s border attributes:
 <table><tr><td><pre>;Top-left positions
@@ -392,8 +392,8 @@ WriteTableAddress:
 	ScreenBoundsHeights:
 		dw ($000A-$0005)*16		;&gt;$00
 		dw ($000A-$0005)*16		;&gt;$01</pre></td></tr></table>
-		</li>
-		<li>And now you are done.</li>
+		</li><br>
+		<li>And now you are done.</li><br>
 	</ol>
 	<h4>Note using in a level</h2>
 	<ul>
@@ -473,5 +473,5 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 			One way to fix this is by after Layer 2 has been shifted, using a debugger (bsnes plus), set a breakpoint at address <kbd>$00f79d</kbd> under &ldquo;execute&rdquo;, and use the <kbd>step</kbd>
 			function to see how the code is executed to calculate the position of layer 2. Try to mimic that using uberasm tool under the <kbd>level</kbd> under <kbd>load</kbd>. While the X position never
 			changes based on the player's level entrance, the Y position may vary using <kbd><a href="https://smwc.me/m/smw/ram/7E1417/">$1417</a></kbd>, so keep that in mind.
-		</li>
+		</li><br>
 	</ul>

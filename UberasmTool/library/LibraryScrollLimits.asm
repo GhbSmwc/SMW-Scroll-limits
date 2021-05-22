@@ -265,6 +265,13 @@ ClampDestinationPosition:
 					BPL ....RightBorderSafe
 					STA !Freeram_FlipScreenXDestination
 					....RightBorderSafe
+				LDA $13D7|!addr		;>Level height
+				SEC
+				SBC #($00E0)+1		;>The screen is 224 pixels tall, 224 = $E0, but since the screen is showing layer 1 1px lower, an additional 1 to be subtracted by is needed
+				CMP !Freeram_FlipScreenYDestination
+				BPL ...NotExceedBottom
+				STA !Freeram_FlipScreenYDestination
+				...NotExceedBottom
 	.Done
 		SEP #$20
 		RTL
