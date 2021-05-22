@@ -1,11 +1,6 @@
 ;This is a subroutine file intended to be placed in uberasm tool's "library" folder,
-;and called under gamemode 14 as "main".
-
-;Call using "JSL LibraryScrollLimits_ScrollLimitMain", without quotes.
-;to apply the Megaman styled flip screen effect zones in the level, call
-
-;using "JSL LibraryScrollLimits_SetScrollBorder" inside your level asm files
-;of uberasm tool.
+;
+;
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
 ;Subroutines include:
@@ -21,6 +16,11 @@ incsrc "../ScrollLimitsDefines/Defines.asm"
 ;-FailSafeScrollBorder
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Do scrolling effect.
+;;
+;;To be called using gameode 14 under "main" (run every
+;;frame) using this:
+;; JSL LibraryScrollLimits_SetScrollBorder
+;;
 ;;This itself only do the scrolling effects to move
 ;;the screen to its destination during a transition
 ;;(not just for flip-screen, but also when switching
@@ -613,6 +613,10 @@ Aiming:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Setup borders, this determine which borders to use based on player position
 ;;in the level.
+;;
+;;Call this as "level" under "main":
+;; JSL LibraryScrollLimits_IdentifyWhichBorder
+;;
 ;;Input (little endian!):
 ;;-$00 to $02: Table (each item is 2 bytes) of X positions
 ;;-$03 to $05: Table (each item is 2 bytes) of Y positions
@@ -678,6 +682,10 @@ IdentifyWhichBorder:
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Control borders, use for activating screen transition to another area.
+;;
+;;Call this as "level" under "main":
+;; JSL LibraryScrollLimits_SetScrollBorder
+;;
 ;;Input (little endian!):
 ;;-$00 to $02: Table (each item is 2 bytes) of X positions
 ;;-$03 to $05: Table (each item is 2 bytes) of Y positions
@@ -735,8 +743,13 @@ SetScrollBorder:
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Force screen to be in bounds (this will instantly set the XY pos of the
-;;screen, and to be used during level load (under "load:")). This not to be
-;;used for the flip-screen effect, use the other subroutine after this one.
+;;screen.
+;;Call this as "level" under "load":
+;; JSL LibraryScrollLimits_ForceScreenWithinLimits
+;;
+;;This not to be used for the flip-screen effect, use the other subroutine
+;;after this one (this is good for static borders). This is for "static"
+;;borders not using the identifier (!Freeram_FlipScreenAreaIdentifier).
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ForceScreenWithinLimits:
 	REP #$20
@@ -774,8 +787,11 @@ ForceScreenWithinLimits:
 	RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Force screen to be in identified bounds (this will instantly set the XY pos of the
-;;screen, and to be used during level load (under "load:")). Call this AFTER
-;;calling "JSL LibraryScrollLimits_IdentifyWhichBorder".
+;;screen. This is meant to be used for multi-bordered area for the flip-screen effect.
+;;Call this as "level" under "load":
+;; JSL LibraryScrollLimits_ForceScreenWithinIdentifiedLimits
+;;
+;;Call this AFTER calling "JSL LibraryScrollLimits_IdentifyWhichBorder".
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ForceScreenWithinIdentifiedLimits:
 	JSL SetScrollBorder
