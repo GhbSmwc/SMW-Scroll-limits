@@ -46,6 +46,9 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	<li><a href="#Installation" id="Installation_Back">Installation</a></li>
 	<li><a href="#LevelUsage" id="LevelUsage_Back">How to use them in a level</a></li>
 	<li><a href="#FlipScreenEffect" id="FlipScreenEffect_Back">How to have a flip-screen effect in a level</a></li>
+	<ul>
+		<li><a href="#NoteUsingInLevel" id="NoteUsingInLevel_Back">Note using in a level</a></li>
+	</ul>
 </ul>
 
 <h2><a href="#NoteBeforeUse_Back" id="NoteBeforeUse">^</a>Note before use</h2>
@@ -226,6 +229,9 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 			Do note that this <b>sets the screen position</b>, when the player attempts to move the screen, so screen jumping can occur and display glitched (unloaded) layer 1 and 2 graphics.
 			Use this code during level loading is recommended.<br><br>
 			
+			Also be careful that some freeram addresses may clear during level loading, I'm not sure if uberasm tool's <kbd>load</kbd> happens after or before clearing RAM, the default RAMs here were tested and
+			does not to it seems safe. If you are unsure, check out the RAM map.<br><br>
+			
 			Furthermore, if you have borders that can turn on/off, <b>both</b> ways can cause the screen to jump within bounds or jump to position so that the static camera region is on the player.<br><br>
 			
 			To avoid screen jumping, I recommend setting <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$02</kbd> (screen gradually scrolls to be within bounds closest to the player) or <kbd>$03</kbd> (same as <kbd>$02</kbd>
@@ -395,7 +401,7 @@ WriteTableAddress:
 		</li><br>
 		<li>And now you are done.</li><br>
 	</ol>
-	<h4>Note using in a level</h2>
+	<h4><a href="#NoteUsingInLevel_Back" id="NoteUsingInLevel">^</a>Note using in a level</h2>
 	<ul>
 		<li>If the areas overlap, and the player is in that area, whatever last on the table list the player is in will take precedence and overrides any borders before it on the table, as the routine, like most codes uses a
 		<a href="https://ersanio.gitbook.io/assembly-for-the-snes/deep-dives/techniques#looping">negative check loop</a> (a loop that an index starts with a specified number besides 0, and in that loop, the index decrements
@@ -474,4 +480,7 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 			function to see how the code is executed to calculate the position of layer 2. Try to mimic that using uberasm tool under the <kbd>level</kbd> under <kbd>load</kbd>. While the X position never
 			changes based on the player's level entrance, the Y position may vary using <kbd><a href="https://smwc.me/m/smw/ram/7E1417/">$1417</a></kbd>, so keep that in mind.
 		</li><br>
+		
+		<li>If you have set the custom borders to extend outside the level boundaries, don't worry, both the main patch <kbd>ScrollLimitsPatch.asm</kbd> and uberasm tool code <kbd>library/LibraryScrollLimits.asm</kbd> have
+		a failsafe measure to prevent the screen and the scrolling destination position from leaving the level, regardless the RAM defined in <kbd>!Freeram_ScrollLimitsFlag</kbd> being nonzero or not.</li><br>
 	</ul>
