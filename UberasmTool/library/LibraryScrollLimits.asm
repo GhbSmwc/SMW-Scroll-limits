@@ -18,7 +18,7 @@ incsrc "../ScrollLimitsDefines/Defines.asm"
 ;-SetScrollBorder
 ;-ForceScreenWithinLimits
 ;-ForceScreenWithinIdentifiedLimits
-
+;-FailSafeScrollBorder
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Do scrolling effect.
 ;;This itself only do the scrolling effects to move
@@ -763,6 +763,7 @@ ForceScreenWithinLimits:
 			STA $1C
 	.Done
 	SEP #$20
+	JSL FailSafeScrollBorder
 	RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Force screen to be in identified bounds (this will instantly set the XY pos of the
@@ -813,4 +814,70 @@ ForceScreenWithinIdentifiedLimits:
 		
 		..NotExceedBottom
 	SEP #$20
+	JSL FailSafeScrollBorder
 	RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Failsafe level scroll border. Prevents these routines:
+;;-ForceScreenWithinLimits
+;;-ForceScreenWithinIdentifiedLimits
+;;From potentially placing the screen outside the level bounds
+;;Note: This assumes that the “Allow viewing full bottom row of
+;;tiles” is always checked.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+FailSafeScrollBorder:
+	REP #$20
+	.TopAndLeft
+		LDA #$0000
+		CMP $1462|!addr
+		BMI ..NotExceedLeft
+		STA $1462|!addr
+		STA $1A
+		..NotExceedLeft
+		CMP $1464|!addr
+		BMI ..NotExceedTop
+		STA $1464|!addr
+		STA $1C
+		..NotExceedTop
+	.BottomAndRight
+		LDA $5B
+		LSR
+		BCC ..HorizontalLevel
+		
+		..VerticalLevel
+			LDA #$0100
+			CMP $1462|!addr
+			BPL ...NotExceedRight
+			STA $1462|!addr
+			STA $1A
+			...NotExceedRight
+			LDA $5F			;>$GGSS
+			DEC			;>$GGss
+			XBA			;>$ssGG
+			AND #$FF00		;>$ss00
+			CMP $1464|!addr
+			BPL ...NotExceedBottom
+			STA $1464|!addr
+			STA $1C
+			...NotExceedBottom
+			BRA .Done
+		..HorizontalLevel
+			LDA $5E			;>$GGSS
+			DEC			;>$GGss
+			XBA			;>$ssGG
+			AND #$FF00		;>$ss00
+			CMP $1462|!addr
+			BPL ...NotExceedRight
+			STA $1462|!addr
+			STA $1A
+			...NotExceedRight
+			LDA $13D7|!addr		;>Level height
+			SEC
+			SBC #$00E0		;>The screen is 224 pixels tall, 224 = $E0
+			CMP $1464|!addr
+			BPL ...NotExceedBottom
+			STA $1464
+			STA $1C
+			...NotExceedBottom
+	.Done
+		SEP #$20
+		RTL
