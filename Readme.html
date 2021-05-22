@@ -240,28 +240,47 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		Now note: If you have layer 2 suddenly jumping when the level load has finished, see <a href="#Layer2JumpAfterLoad">this information</a>
 	</p>
 <h2><a href="#FlipScreenEffect_Back" id="FlipScreenEffect">^</a>How to have a flip-screen effect in a level</h2>
-<p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one. You want to have a code and table like this (and feel free to use it):</p>
-	<ul>
-		<li>
-<table><tr><td><pre>main:
-	;This prevents the layers from snapping upon entering the level after a fade-in
-		LDA.b #ScreenBoundsXPositions : STA $00			;\Border attributes, from the table
-		LDA.b #ScreenBoundsXPositions&gt;&gt;8 : STA $01		;|
-		LDA.b #ScreenBoundsXPositions&gt;&gt;16 : STA $02		;|
-		LDA.b #ScreenBoundsYPositions : STA $03			;|
-		LDA.b #ScreenBoundsYPositions&gt;&gt;8 : STA $04		;|
-		LDA.b #ScreenBoundsYPositions&gt;&gt;16 : STA $05		;|
-		LDA.b #ScreenBoundsWidths : STA $06			;|
-		LDA.b #ScreenBoundsWidths&gt;&gt;8 : STA $07			;|
-		LDA.b #ScreenBoundsWidths&gt;&gt;16 : STA $08			;|
-		LDA.b #ScreenBoundsHeights : STA $09			;|
-		LDA.b #ScreenBoundsHeights&gt;&gt;8 : STA $0A			;|
-		LDA.b #ScreenBoundsHeights&gt;&gt;16 : STA $0B		;/
-		LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D	;&gt;Size of the table, minus 2
-		JSL LibraryScrollLimits_IdentifyWhichBorder		;&gt;Identify what border the player is in (will set !Freeram_FlipScreenAreaIdentifier to what zone the player is in).
-		LDA #$03 : STA $0C					;&gt;Transition mode, use only these values: $02 = Transition without freeze, $03 = transition with freeze.
-		JSL LibraryScrollLimits_SetScrollBorder			;&gt;Apply the changes of the border.
-		RTL
+<p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one. The code checks Mario's position every frame if he's in one of these
+zones, and if it detects a change between zones, perform a scrolling to the zone he's newly in (If Mario is in neither, treat as if the player didn't switch zones).</p>
+	<ol>
+		<li>You want to have a code and table like this (and feel free to use it as a template):
+<table><tr><td><pre>load:
+	LDA #$02						;&gt;Nonzero value
+	STA !Freeram_DisableBarrier				;&gt;Disable barrier (without it, you cannot trigger scrolling effect on left/right side of screen)
+	STA !Freeram_ScrollLimitsFlag				;&gt;Enable scroll limits.
+	JSL WriteTableAddress
+	STZ $1411|!addr						;\Just in case
+	STZ $1412|!addr						;/
+	JSL LibraryScrollLimits_IdentifyWhichBorder			;&gt;What border the player is in
+	LDA #$03 : STA $0C						;&gt;Transition mode, use only these values: $02 = Transition without freeze, $03 = transition with freeze.
+	JSL LibraryScrollLimits_SetScrollBorder				;&gt;Set border attributes
+	JSL LibraryScrollLimits_ForceScreenWithinIdentifiedLimits	;&gt;Make it so that the screen is within the zone the player is in.
+	;[Insert code here that would adjust layer 2 from layer 1 AFTER layer 1 is placed within borders.]
+	RTL
+
+
+main:
+	JSL WriteTableAddress
+	JSL LibraryScrollLimits_IdentifyWhichBorder		;&gt;Identify what border the player is in (will set !Freeram_FlipScreenAreaIdentifier to what zone the player is in).
+	LDA #$03 : STA $0C					;&gt;Transition mode, use only these values: $02 = Transition without freeze, $03 = transition with freeze.
+	JSL LibraryScrollLimits_SetScrollBorder			;&gt;Apply the changes of the border.
+	RTL
+WriteTableAddress:
+	LDA.b #ScreenBoundsXPositions : STA $00			;\Border attributes, from the table
+	LDA.b #ScreenBoundsXPositions>>8 : STA $01		;|
+	LDA.b #ScreenBoundsXPositions>>16 : STA $02		;|
+	LDA.b #ScreenBoundsYPositions : STA $03			;|
+	LDA.b #ScreenBoundsYPositions>>8 : STA $04		;|
+	LDA.b #ScreenBoundsYPositions>>16 : STA $05		;|
+	LDA.b #ScreenBoundsWidths : STA $06			;|
+	LDA.b #ScreenBoundsWidths>>8 : STA $07			;|
+	LDA.b #ScreenBoundsWidths>>16 : STA $08			;|
+	LDA.b #ScreenBoundsHeights : STA $09			;|
+	LDA.b #ScreenBoundsHeights>>8 : STA $0A			;|
+	LDA.b #ScreenBoundsHeights>>16 : STA $0B		;/
+	LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D	;>Size of the table, minus 2
+	RTL
+
 ;Scroll limit box attributes, each index is each screen area.
 ;Make sure the number of values all matches!
 ;
@@ -332,27 +351,19 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 		dw ($001B-$0000)*16	;&gt;$08
 		dw ($001B-$0000)*16	;&gt;$09</pre></td></tr></table><br>
 		The tables, labeled <kbd>ScreenBoundsXPositions</kbd>, <kbd>ScreenBoundsYPositions</kbd>, <kbd>ScreenBoundsWidths</kbd>, and <kbd>ScreenBoundsHeights</kbd>, is what we need to focus on.
-		Keep in mind that each same nth item in the table are associated with each other, meaning that the first item in the tables are used together for zone 0, second item in tables for zone 1, and so on,
-		they do not use other items within them (like zone 0 uses first item in <kbd>ScreenBoundsXPositions</kbd>, second item in <kbd>ScreenBoundsYPositions</kbd>, it doesn't work like that)</li>
-	</ul>
-	
-<h3>Instructions to use in level</h3>
-	<ol>
-		<li>After creating a level, make LM display the &ldquo;Game View Screen&rdquo;, this is found in the <kbd>View</kbd> on the menu bar or pressing F3. Hold ALT+F3 to drag it around and place them
-		at the top-left area where you want to place your top and leftmost limit, then hover your mouse on a block where that top-left area of the screen. Do the same thing again but place the game view
-		screen at the bottom-rightmost area (while still using the top-left of the game view screen), to obtain the right and bottom limits. Use the status bar on LM to get its block coordinate on both,
-		Here is an example:<br>
+		Keep in mind that each same nth item in each table are associated with each other, meaning that the first item in the tables are used together for <kbd>zone 0</kbd> (index 0), second item in tables for <kbd>zone 1</kbd> (index 1), and so on,
+		they do not use other items within them (like zone 0 uses first item in <kbd>ScreenBoundsXPositions</kbd>, second item in <kbd>ScreenBoundsYPositions</kbd>, it doesn't work like that)</li><br>
+
+		<li>It is pretty much the same, but we are dealing with <b>multiple</b> borders. Get their positions accordingly, here is the image using the example table and code previously mentioned:<br>
 		<img src="readme_files/Tutorial_SettingUpBorders.png"></li><br>
 		
-		<li>With the coordinates in hand we have, in the example:
+		<li>
+			With the coordinates in hand we have, in the example:
 			<ul>
 				<li>Leftmost X position: <kbd>$000E</kbd>, rightmost: <kbd>$001E</kbd></li>
 				<li>Topmost Y position: <kbd>$0005</kbd>, bottommost: <kbd>$000A</kbd></li>
 			</ul>
-		</li>
-		
-		<li>To convert block coordinates into pixel-coordinates, simply multiply the numbers by 16 ($10), an easier format is to put a formula in the tables and asar will reconize it and convert it for you
-		upon assembling. Here is what it should be:
+			<kbd>zone 0</kbd>'s border attributes:
 <table><tr><td><pre>;Top-left positions
 	ScreenBoundsXPositions:
 		dw $000E*16		;&gt;$00
@@ -365,8 +376,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	ScreenBoundsHeights:
 		dw ($000A-$0005)*16		;&gt;$00
 </pre></td></tr></table>
-		And you are done. If you want to add more bounded areas, do the same thing as above, but at a different XY position of your choice, once that is done, add a new entry in each table, makeing sure they match and not be
-		associated to the wrong item. In this example of having a second area:<br>
+		<kbd>zone 1</kbd>'s attribute added:<br>
 		<img src="readme_files/Tutorial_SettingUpBorders2.png"><br>
 		And the tables should be:
 <table><tr><td><pre>;Top-left positions

@@ -1,29 +1,16 @@
 incsrc "../ScrollLimitsDefines/Defines.asm"
 
 load:
-	LDA #$02
-	STA !Freeram_DisableBarrier
-	STA !Freeram_ScrollLimitsFlag
-	LDA.b #ScreenBoundsXPositions : STA $00
-	LDA.b #ScreenBoundsXPositions>>8 : STA $01
-	LDA.b #ScreenBoundsXPositions>>16 : STA $02
-	LDA.b #ScreenBoundsYPositions : STA $03
-	LDA.b #ScreenBoundsYPositions>>8 : STA $04
-	LDA.b #ScreenBoundsYPositions>>16 : STA $05
-	LDA.b #ScreenBoundsWidths : STA $06
-	LDA.b #ScreenBoundsWidths>>8 : STA $07
-	LDA.b #ScreenBoundsWidths>>16 : STA $08
-	LDA.b #ScreenBoundsHeights : STA $09
-	LDA.b #ScreenBoundsHeights>>8 : STA $0A
-	LDA.b #ScreenBoundsHeights>>16 : STA $0B
-	LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D
-	STZ $1411|!addr					;\Just in case
-	STZ $1412|!addr					;/
-	JSL LibraryScrollLimits_IdentifyWhichBorder
-	LDA #$03
-	STA $0C
-	JSL LibraryScrollLimits_SetScrollBorder
-	JSL LibraryScrollLimits_ForceScreenWithinIdentifiedLimits
+	LDA #$02						;>Nonzero value
+	STA !Freeram_DisableBarrier				;>Disable barrier (without it, you cannot trigger scrolling effect on left/right side of screen)
+	STA !Freeram_ScrollLimitsFlag				;>Enable scroll limits.
+	JSL WriteTableAddress					;>Obtain table address
+	STZ $1411|!addr						;\Just in case
+	STZ $1412|!addr						;/
+	JSL LibraryScrollLimits_IdentifyWhichBorder			;>What border the player is in
+	LDA #$03 : STA $0C						;>Transition mode, use only these values: $02 = Transition without freeze, $03 = transition with freeze.
+	JSL LibraryScrollLimits_SetScrollBorder				;>Set border attributes
+	JSL LibraryScrollLimits_ForceScreenWithinIdentifiedLimits	;>Make it so that the screen is within the zone the player is in.
 	REP #$20
 	;Stuff you may have to fiddle around so that the background does not glitch or suddenly move when the level fully loads.
 	;
@@ -53,6 +40,12 @@ load:
 	SEP #$20
 	RTL
 main:
+	JSL WriteTableAddress					;>Obtain table address
+	JSL LibraryScrollLimits_IdentifyWhichBorder		;>Identify what border the player is in (will set !Freeram_FlipScreenAreaIdentifier to what zone the player is in).
+	LDA #$03 : STA $0C					;>Transition mode, use only these values: $02 = Transition without freeze, $03 = transition with freeze.
+	JSL LibraryScrollLimits_SetScrollBorder			;>Apply the changes of the border.
+	RTL
+WriteTableAddress:
 	LDA.b #ScreenBoundsXPositions : STA $00			;\Border attributes, from the table
 	LDA.b #ScreenBoundsXPositions>>8 : STA $01		;|
 	LDA.b #ScreenBoundsXPositions>>16 : STA $02		;|
@@ -66,10 +59,8 @@ main:
 	LDA.b #ScreenBoundsHeights>>8 : STA $0A			;|
 	LDA.b #ScreenBoundsHeights>>16 : STA $0B		;/
 	LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D	;>Size of the table, minus 2
-	JSL LibraryScrollLimits_IdentifyWhichBorder		;>Identify what border the player is in (will set !Freeram_FlipScreenAreaIdentifier to what zone the player is in).
-	LDA #$03 : STA $0C					;>Transition mode, use only these values: $02 = Transition without freeze, $03 = transition with freeze.
-	JSL LibraryScrollLimits_SetScrollBorder			;>Apply the changes of the border.
 	RTL
+
 ;Scroll limit box attributes, each index is each screen area.
 ;Make sure the number of values all matches!
 ;
