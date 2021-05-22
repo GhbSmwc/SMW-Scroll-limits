@@ -81,31 +81,8 @@
 		;A: 16-bit
 		LDA !Freeram_ScrollLimitsFlag
 		AND.w #$00FF
-		BNE .CustomLimits
-		.Vanilla
-			LDA $02
-			CLC
-			ADC $1A
-			;CMP #$0000			;\
-			BPL ..CODE_00F746		;|left boundary
-			LDA.W #$0000			;/
-			
-			..CODE_00F746
-			STA $1A				;>Set screen X position
-			LDA $5E				;\Deal with right boundary
-			DEC A				;|
-			XBA				;|
-			AND.W #$FF00			;|
-			BPL ..CODE_00F754		;|
-			LDA.W #$0080			;|
-			
-			..CODE_00F754
-			CMP $1A				;|
-			BPL ..CODE_00F75A		;|
-			STA $1A				;/
-			
-			..CODE_00F75A:
-			BRA .Done
+		BEQ .Vanilla
+		
 		.CustomLimits
 			LDA $02
 			CLC
@@ -124,92 +101,163 @@
 			STA $1A					;/>Limit rightwards position.
 			
 			..CODE_00F75A:
+			
+			..FailSafe
+				LDA #$0000
+				CMP $1A
+				BMI ...NotPassingLeft
+				STA $1A
+				...NotPassingLeft
+				LDA $5E
+				DEC A
+				XBA
+				AND #$FF00
+				BPL ...OutsideLudwigReznor
+				
+				...InsideLudwigReznor
+					LDA #$0080
+				...OutsideLudwigReznor
+				CMP $1A
+				BPL ...NotExceedingRight
+				STA $1A
+				...NotExceedingRight
+				BRA .Done
+
+		.Vanilla
+			LDA $02
+			CLC
+			ADC $1A
+			;CMP #$0000			;\
+			BPL ..CODE_00F746		;|left boundary
+			LDA.W #$0000			;/
+			
+			..CODE_00F746
+			STA $1A				;>Set screen X position
+			LDA $5E				;\Deal with right boundary
+			DEC A				;|
+			XBA				;|
+			AND.W #$FF00			;|
+			BPL ..CODE_00F754		;|
+			LDA.W #$0080			;|>1 and a 1/2 screen area for Ludwig and Reznor bosses.
+			
+			..CODE_00F754
+			CMP $1A				;|
+			BPL ..CODE_00F75A		;|
+			STA $1A				;/
+			
+			..CODE_00F75A:
+			;BRA .Done
 		.Done
 			JML $00F79D
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	VerticalLevelHorizontalScroll:		;>JML from $00F789
 		LDA !Freeram_ScrollLimitsFlag
 		AND #$00FF
-		BNE .CustomLimits
-	.Vanilla
-		LDA $02
-		CLC
-		ADC $1A
-		BPL .CODE_00F793
-		LDA #$0000
-		
-		.CODE_00F793
-		CMP #$0101
-		BMI .CODE_00F79B
-		
-		LDA #$0100
-		.CODE_00F79B
-		STA $1A
-		BRA .Done
-	.CustomLimits
-		LDA $02
-		CLC
-		ADC $1A
-		..LeftBorderCheck
-			CMP !Freeram_ScrollLimitsBoxXPosition
-			BPL ...NotExceedingLeft
-			...ExceedingLeft
-			LDA !Freeram_ScrollLimitsBoxXPosition
-			...NotExceedingLeft
-			STA $1A
-		..RightBorderCheck
-			LDA !Freeram_ScrollLimitsBoxXPosition
+		BEQ .Vanilla
+		.CustomLimits
+			LDA $02
 			CLC
-			ADC !Freeram_ScrollLimitsAreaWidth
-			CMP $1A
-			BPL ...NotExceedingRight		;>If border to the right of screen or screen to the left, it is fine.
+			ADC $1A
+			..LeftBorderCheck
+				CMP !Freeram_ScrollLimitsBoxXPosition
+				BPL ...NotExceedingLeft
+				...ExceedingLeft
+				LDA !Freeram_ScrollLimitsBoxXPosition
+				...NotExceedingLeft
+				STA $1A
+			..RightBorderCheck
+				LDA !Freeram_ScrollLimitsBoxXPosition
+				CLC
+				ADC !Freeram_ScrollLimitsAreaWidth
+				CMP $1A
+				BPL ...NotExceedingRight		;>If border to the right of screen or screen to the left, it is fine.
+				STA $1A
+				...NotExceedingRight
+			..FailSafe
+				LDA $0000
+				CMP $1A
+				BMI ...NotExceedingLeft
+				STA $1A
+				...NotExceedingLeft
+				CMP $0100
+				BPL ...NotExceedingRight
+				STA $1A
+				...NotExceedingRight
+				BRA .Done
+		.Vanilla
+			LDA $02
+			CLC
+			ADC $1A
+			BPL .CODE_00F793
+			LDA #$0000
+			
+			.CODE_00F793
+			CMP #$0101
+			BMI .CODE_00F79B
+			
+			LDA #$0100
+			.CODE_00F79B
 			STA $1A
-			...NotExceedingRight
+			;BRA .Done
 		.Done
 			JML $00F79D
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	VerticalScrollingLimits:	;>JML from $00F893
-			;A: 16-bit
-			PHA
-			LDA !Freeram_ScrollLimitsFlag
-			AND #$00FF
-			BNE .CustomLimits
+		;A: 16-bit screen Y pos?
+		;$04 = bottom limit, for vertical levels, it is using $5F, otherwise it might be using $13D7, minus #$00E0 or #$00F0 (if you enable showing bottom row of blocks-- $1936)
+		PHA
+		LDA !Freeram_ScrollLimitsFlag
+		AND #$00FF
+		BEQ .Vanilla
+		
+		.CustomLimits
+			PLA
+			ADC $1C
+			CMP !Freeram_ScrollLimitsBoxYPosition	;\Top limit
+			BPL ..InBound
+			..PastTheTop
+				LDA !Freeram_ScrollLimitsBoxYPosition
+			..InBound
+				STA $1C				;/
+			LDA !Freeram_ScrollLimitsBoxYPosition	;\Bottom limit
+			CLC					;|
+			ADC !Freeram_ScrollLimitsAreaHeight	;|
+			CMP $1C					;|
+			BPL ..CustomLimitDone			;|
+			STA $1C					;/
+			SEP #$20
+			STZ $13F1|!addr
+			..CustomLimitDone
+			REP #$20
 			
-			.Vanilla
-				PLA
-				ADC $1C
-				CMP.w $00F6AD,y
-				BPL ..CODE_00F89D
-				LDA.w $00F6AD,y
-				
-				..CODE_00F89D
+			..FailSafe
+				LDA #$0000
+				CMP $1C
+				BMI ...NotExceedingTop
 				STA $1C
+				...NotExceedingTop
 				LDA $04
 				CMP $1C
-				BPL ..Return00F8AA
+				BPL ...NotExceedingBottom
 				STA $1C
-				SEP #$20
-				STZ $13F1|!addr
-				REP #$20		;>Just in case
-				..Return00F8AA
-				JML $00F8AA
-			.CustomLimits
-				PLA
-				ADC $1C
-				CMP !Freeram_ScrollLimitsBoxYPosition	;\Top limit
-				BPL ..InBound
-				..PastTheTop
-					LDA !Freeram_ScrollLimitsBoxYPosition
-				..InBound
-					STA $1C				;/
-				LDA !Freeram_ScrollLimitsBoxYPosition	;\Bottom limit
-				CLC					;|
-				ADC !Freeram_ScrollLimitsAreaHeight	;|
-				CMP $1C					;|
-				BPL .Done				;|
-				STA $1C					;/
-				SEP #$20
-				STZ $13F1|!addr
-				REP #$20		;>Just in case
-			.Done
-				JML $00F8AA
+				...NotExceedingBottom
+				BRA .Done
+		.Vanilla
+			PLA
+			ADC $1C
+			CMP.w $00F6AD,y
+			BPL ..CODE_00F89D
+			LDA.w $00F6AD,y
+			
+			..CODE_00F89D
+			STA $1C
+			LDA $04
+			CMP $1C
+			BPL ..Return00F8AA
+			STA $1C
+			SEP #$20
+			STZ $13F1|!addr
+			REP #$20		;>Just in case
+			..Return00F8AA
+		.Done
+			JML $00F8AA

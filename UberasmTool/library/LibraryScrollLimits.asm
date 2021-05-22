@@ -22,7 +22,9 @@ incsrc "../ScrollLimitsDefines/Defines.asm"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Do scrolling effect.
 ;;This itself only do the scrolling effects to move
-;;the screen to its destination during a transition.
+;;the screen to its destination during a transition
+;;(not just for flip-screen, but also when switching
+;;!Freeram_ScrollLimitsFlag on and off).
 ;;Output:
 ;;-Carry: Clear if screen has not reached
 ;; destination, otherwise set (for 1 frame-execution).
@@ -126,6 +128,8 @@ ScrollLimitMain:
 			RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Adjust the target position to be centered with the player or be in-bounds
+;;!Freeram_FlipScreenXDestination and !Freeram_FlipScreenYDestination to be
+;;to be corrected.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ClampDestinationPosition:
 	;Note to self
@@ -196,7 +200,7 @@ ClampDestinationPosition:
 	.VerticalClamp
 		LDA $96
 		SEC
-		SBC #!Setting_ScrollLimits_PlayerYCenter
+		SBC.w #!Setting_ScrollLimits_PlayerYCenter
 		STA !Freeram_FlipScreenYDestination
 		..TopBorderCheck
 			CMP !Freeram_ScrollLimitsBoxYPosition
@@ -212,6 +216,55 @@ ClampDestinationPosition:
 			BPL ...NotPassingTopBorder
 			STA !Freeram_FlipScreenYDestination
 			...NotPassingTopBorder
+	.OuterLevelClamp
+		;This is a failsafe measure that should the custom borders be extending
+		;outside the level, will use the vanilla borders too. Having the screen
+		;going past the left or top edge of the stage causes garbage 16x16 tiles
+		;to show EVERYWHERE (even appearing INSIDE the level borders),
+		;guaranteed if scrolling in certain directions.
+		..TopAndLeft
+			LDA #$0000
+			CMP !Freeram_FlipScreenXDestination
+			BMI ...LeftBorderSafe
+			STA !Freeram_FlipScreenXDestination
+			...LeftBorderSafe
+			CMP !Freeram_FlipScreenYDestination
+			BMI ...TopBorderSafe
+			STA !Freeram_FlipScreenYDestination
+			...TopBorderSafe
+		..BottomAndRight
+			LDA $5B
+			LSR
+			BCC ...HorizontalLevel
+			
+			...VerticalLevel
+				LDA #$0100				;>Rightmost position
+				CMP !Freeram_FlipScreenXDestination
+				BPL ....RightBorderSafe
+				STA !Freeram_FlipScreenXDestination
+				....RightBorderSafe
+				LDA $5F				;\$GGSS (GG for what was in $60, we don't need, SS is the number of screens vertically)
+				DEC				;|SS now contains the stopping position when scrolling downwards, in number of screens, now becoming ss
+				XBA				;|it is now ssGG
+				AND #$FF00			;/now ss00, the actual bottommost position
+				CMP !Freeram_FlipScreenYDestination
+				BPL ....BottomBorderSafe
+				STA !Freeram_FlipScreenYDestination
+				....BottomBorderSafe
+				BRA .Done
+			...HorizontalLevel
+				LDA $5E				;>$GGSS (GG for what was in $5F, we don't need, SS is the number of screens horizontally)
+				DEC A				;>SS now contains the stopping position when scrolling rightwards, in number of screens, now becoming ss
+				XBA				;>it is now ssGG
+				AND #$FF00			;>now ss00, the actual rightmost position
+				BPL ....NormalScrollLimits	;>If ss is 0 or more, then it is a normal scrolling, otherwise -1, then it is a ludwig/reznor boss fight, 1 1/2 screen area.
+				....LudwigReznor
+					LDA #$0080
+				....NormalScrollLimits
+					CMP !Freeram_FlipScreenXDestination
+					BPL ....RightBorderSafe
+					STA !Freeram_FlipScreenXDestination
+					....RightBorderSafe
 	.Done
 		SEP #$20
 		RTL
