@@ -1,5 +1,13 @@
-;Note: The screen isn't a perfect square, but a 8:7 ratio (256x224), however, each zone is 256x256,
-;so each zone will have a small vertical scrolling of 2 16x16 blocks, much like ALTTP.
+;This mimics the “single screen” uberasm code that was made before this: https://www.smwcentral.net/?p=section&a=details&id=22371
+;However because the screen isn't a perfect square (256x224), and this ASM treats each zone as 256x256, the screen will scroll within 2 blocks
+;vertically.
+;
+;If you don't know where the scroll borders are at, goto LM's menu bar of the level using this ASM, on View -> “sub-screen boundaries” or hit F2.
+;The green borders will be aligned with this ASM's borders (except not always the bottom, since the height of the level is not always a multiple
+;of 256 pixels depending on the level dimensions).
+;
+;Why did I made this? Well, that one clears $9D every frame during non-transition, which is bad, and another reason is merging similar ASM stuff into one
+;to reuse RAM (incorporate together).
 
 incsrc "../ScrollLimitsDefines/Defines.asm"
 load:
@@ -48,8 +56,8 @@ main:
 		JSL SingleScreen					;>Update the borders position
 		LDA #$03
 		STA !Freeram_ScrollLimitsFlag
-		STZ $1411|!addr					;\Prevent potential insta-scroll (found out that it runs in this order: This uberasm level code, SMW scrolling
-		STZ $1412|!addr					;/code at $00F6DB, and then uberasm tool's gamemode 14).
+		STZ $1411|!addr					;\Prevent potential insta-scroll (found out that it runs in this order: This uberasm level-main code, SMW scrolling
+		STZ $1412|!addr					;/code at $00F6DB, and then uberasm tool's gamemode 14 main).
 	.NoTransition
 	RTL
 SingleScreen:
@@ -66,7 +74,7 @@ SingleScreen:
 	STA !Freeram_ScrollLimitsBoxYPosition			;/
 	LDA #$0000						;\No horizontal scrolling freely since the zone is 256 pixels wide
 	STA !Freeram_ScrollLimitsAreaWidth			;/
-	LDA #$0020						;\A little bit of vertical scrolling so that the area is 256 pixels tall.
+	LDA #$0020						;\A little bit of vertical scrolling (2 16x16 blocks) so that the area is 256 pixels tall.
 	STA !Freeram_ScrollLimitsAreaHeight			;/
 	SEP #$20
 	RTL
