@@ -14,17 +14,27 @@ incsrc "../ScrollLimitsDefines/Defines.asm"
 ;-ForceScreenWithinLimits
 ;-ForceScreenWithinIdentifiedLimits
 ;-FailSafeScrollBorder
+;-CheckIfMarioIsOutsideZone
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Do scrolling effect.
 ;;
 ;;To be called using gameode 14 under "main" (run every
 ;;frame) using this:
 ;; JSL LibraryScrollLimits_SetScrollBorder
+;;Not recommended to call this twice for both gamemode 14
+;;and level as this can cause the screen to move twice as fast
+;;and potentially other issues.
 ;;
 ;;This itself only do the scrolling effects to move
 ;;the screen to its destination during a transition
-;;(not just for flip-screen, but also when switching
-;;!Freeram_ScrollLimitsFlag on and off).
+;;(not just for flip-screen, but also a way to enable/disable
+;;/move borders without screen jumping).
+;;Input:
+;;-!Freeram_ScrollLimitsFlag:
+;; $00 = Do nothing
+;; $01 = Same as above but custom borders enabled
+;; $02 = Screen transition (without $9D freeze)
+;; $03 = Screen transition (with $9D freeze)
 ;;Output:
 ;;-Carry: Clear if screen has not reached
 ;; destination, otherwise set (for 1 frame-execution).
@@ -38,7 +48,7 @@ ScrollLimitMain:
 	ORA $1426|!addr		;>Seems like either transferring from $1A-$1D to $1462-$1465 (or vice versa) gets suspended during a message box.
 	BNE .Done
 	
-	.PlayerAnimationCheck
+	.PlayerAnimationCheck ;This prevents the scrolling from happening if the player is performing certain actions that shouldn't cause the screen to transition.
 		LDA $71
 		BEQ ..Allow		;\Allow either "normal-state" Mario or during a freeze
 		CMP #$0B		;|(when RAM $71 is $0B, code at $00cde8 is no longer executed)
@@ -72,10 +82,12 @@ ScrollLimitMain:
 					LDA !Freeram_ScrollLimitsFlag
 					CMP #$03
 					BNE ....ScrollWithoutFreeze
-					LDA #$0B
-					;STA $71
-					STA $9D					;>Freeze
-					STA $13FB|!addr
+					
+					....ScrollWithFreeze
+						LDA #$0B
+						;STA $71
+						STA $9D					;>Freeze
+						STA $13FB|!addr
 					....ScrollWithoutFreeze
 				
 				STZ $1411|!addr					;\Disable scrolling
@@ -618,11 +630,11 @@ Aiming:
 ;; JSL LibraryScrollLimits_IdentifyWhichBorder
 ;;
 ;;Input (little endian!):
-;;-$00 to $02: Table (each item is 2 bytes) of X positions
-;;-$03 to $05: Table (each item is 2 bytes) of Y positions
-;;-$06 to $08: Table (each item is 2 bytes) of widths
-;;-$09 to $0B: Table (each item is 2 bytes) of heights
-;;-$0C to $0D: Size of the table in bytes, minus 2
+;;-$00 to $02 (3 bytes): Table (each item is 2 bytes) of X positions
+;;-$03 to $05 (3 bytes): Table (each item is 2 bytes) of Y positions
+;;-$06 to $08 (3 bytes): Table (each item is 2 bytes) of widths
+;;-$09 to $0B (3 bytes): Table (each item is 2 bytes) of heights
+;;-$0C to $0D (3 bytes): Size of the table in bytes, minus 2
 ;;Output:
 ;;-!Freeram_FlipScreenAreaIdentifier: Which screen area to be in.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -687,11 +699,11 @@ IdentifyWhichBorder:
 ;; JSL LibraryScrollLimits_SetScrollBorder
 ;;
 ;;Input (little endian!):
-;;-$00 to $02: Table (each item is 2 bytes) of X positions
-;;-$03 to $05: Table (each item is 2 bytes) of Y positions
-;;-$06 to $08: Table (each item is 2 bytes) of widths
-;;-$09 to $0B: Table (each item is 2 bytes) of heights
-;;-$0C: Scroll limits flag (don't use other values than listed here):
+;;-$00 to $02 (3 bytes): Table (each item is 2 bytes) of X positions
+;;-$03 to $05 (3 bytes): Table (each item is 2 bytes) of Y positions
+;;-$06 to $08 (3 bytes): Table (each item is 2 bytes) of widths
+;;-$09 to $0B (3 bytes): Table (each item is 2 bytes) of heights
+;;-$0C (1 byte): Scroll limits flag (don't use other values than listed here):
 ;; -$02 = Scroll without freeze
 ;; -$03 = Scroll with freeze
 ;;-!Freeram_FlipScreenAreaIdentifier: Index on the tables to select which
@@ -903,4 +915,57 @@ FailSafeScrollBorder:
 			...NotExceedBottom
 	.Done
 		SEP #$20
+		RTL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Check if Mario is outside the screen zone. Can be called anywhere, but
+;;used mainly for "single-screen" (level - main):
+;; JSL LibraryScrollLimits_CheckIfMarioIsOutsideZone
+;;Input:
+;;-Border attributes used to check if Mario is within them:
+;;--!Freeram_ScrollLimitsBoxXPosition
+;;--!Freeram_ScrollLimitsBoxYPosition
+;;--!Freeram_ScrollLimitsAreaWidth
+;;--!Freeram_ScrollLimitsAreaHeight
+;;Output:
+;;-Carry: clear if Mario is within, set if Mario is outside (which should
+;; trigger the scrolling effect)
+;;Destroyed:
+;;$00-$03: Used for finding Mario's center position.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+CheckIfMarioIsOutsideZone:
+	REP #$20				;\Get player's center position
+	LDA $94					;|
+	CLC					;|
+	ADC #$0008				;|
+	STA $00					;|
+	LDA $96					;|
+	CLC					;|
+	ADC #$0018				;|
+	STA $02					;/
+	LDA !Freeram_ScrollLimitsBoxXPosition
+	CMP $00
+	BPL .Outside
+	CLC
+	ADC !Freeram_ScrollLimitsAreaWidth
+	CLC
+	ADC #$0100				;>Plus 256 because the screen is 256 pixels wide
+	CMP $00
+	BMI .Outside
+	LDA !Freeram_ScrollLimitsBoxYPosition
+	CMP $02
+	BPL .Outside
+	CLC
+	ADC !Freeram_ScrollLimitsAreaHeight
+	CLC
+	ADC #$00E0				;>Plus 224 because the screen is 224 pixels tall
+	CMP $02
+	BMI .Outside
+	
+	.Inside
+		SEP #$20
+		CLC
+		RTL
+	.Outside
+		SEP #$21
 		RTL
