@@ -945,21 +945,27 @@ CheckIfMarioIsOutsideZone:
 	STA $02					;/
 	LDA !Freeram_ScrollLimitsBoxXPosition
 	CMP $00
+	BEQ +					;>Prevent two areas from creating a 1px overlap area (so the range is 0-255 rather than 0-256).
 	BPL .Outside
+	+
 	CLC
 	ADC !Freeram_ScrollLimitsAreaWidth
 	CLC
 	ADC #$0100				;>Plus 256 because the screen is 256 pixels wide
 	CMP $00
+	BEQ .Outside				;>Prevent two areas from creating a 1px overlap area (so the range is 0-255 rather than 0-256).
 	BMI .Outside
 	LDA !Freeram_ScrollLimitsBoxYPosition
 	CMP $02
+	BEQ +					;>Prevent two areas from creating a 1px overlap area (so the range is 0-255 rather than 0-256).
 	BPL .Outside
+	+
 	CLC
 	ADC !Freeram_ScrollLimitsAreaHeight
 	CLC
 	ADC #$00E0				;>Plus 224 because the screen is 224 pixels tall
 	CMP $02
+	BEQ .Outside				;>Prevent two areas from creating a 1px overlap area (so the range is 0-255 rather than 0-256).
 	BMI .Outside
 	
 	.Inside
