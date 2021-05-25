@@ -1,6 +1,8 @@
 ;This mimics the “single screen” uberasm code that was made before this: https://www.smwcentral.net/?p=section&a=details&id=22371
 ;However because the screen isn't a perfect square (256x224), and this ASM treats each zone as 256x256, the screen will scroll within 2 blocks
-;vertically.
+;in each zone vertically.
+;
+;Obviously, this is less-customizable than "test_CustomBorders.asm" since each zone have the same attributes, and moves on a grid of 256x256.
 ;
 ;If you don't know where the scroll borders are at, goto LM's menu bar of the level using this ASM, on View -> “sub-screen boundaries” or hit F2.
 ;The green borders will be aligned with this ASM's borders (except not always the bottom, since the height of the level is not always a multiple
