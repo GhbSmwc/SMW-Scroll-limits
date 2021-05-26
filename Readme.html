@@ -30,7 +30,18 @@
 <body>
 <center><h1>Custom scroll limits</h1></center>
 <h2>Introduction</h2>
-<p>This ASM package enables you to set custom boundaries of your level.</p>
+<p>
+	This ASM package enables you to set custom scroll boundaries of your level. Very useful for:
+	<ul>
+		<li>Making sure the camera focuses on the playable area and not potentially in the ground/ceiling/wall, especially 1-screen sections.</li><br>
+		<li>Re-use levels without the camera to be able to suspiciously scroll outside the &ldquo;sub-room&rdquo;</li><br>
+		<li>Hidden secret behind the walls. Hacks like <i>The Second Reality Project Reloaded</i> and <i>New Super Mario World 2: Around The World</i> have a tendency that in some rooms, on the far-right (or left)
+		of the area, if the camera scrolls further into the wall than it should, then there is a chance there is an hidden opening.</li><br>
+		<li>Hide cutoffs, if they're areas in your levels that are out-of-bounds, you don't need to place decoration tiles there to prevent cutoff, if the screen cannot go there.</li><br>
+		<li>Custom bottomless pits heights. Which gives the feeling to the player that they are essentially at the bottom of the level.</li><br>
+		<li>Boss rooms.</li>
+	</ul>
+</p>
 
 <p>Also comes with a feature to have a <abbr title="Flip screen effect">Megaman/Celeste/Zelda-styled scroll areas where the camera will not cross between areas unless you go to that area</abbr>.</p>
 
