@@ -36,7 +36,7 @@
 
 <p>Normally, you would think this is redundant because there exist other codes that stops the screen scrolling at a certain XY position, say one
 found in the <a href="https://www.smwcentral.net/?p=viewthread&t=62286">ASM library</a>, however this ASM package offers more flexibility, and that
-you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
+you can have &ldquo;multiple scroll stops&rdquo; without duplicate code.</p>
 <hr>
 <h2>Table of contents</h2>
 <ul>
@@ -57,9 +57,9 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	(horizontal and vertical limits for top and bottom borders)). If you wish to have other scrolling-related patches such as my <a href="https://www.smwcentral.net/?p=section&a=details&id=26861">&ldquo;Center scroll&rdquo; patch</a>
 	or <a href="https://www.smwcentral.net/?p=section&a=details&id=17737">Vertical Camera Panning</a>. In these cases, you'll need to merge the ASM files (more specifically, not to use SMW's default scroll limits but
 	use this custom scroll limits patch's RAM that controls the limits). This patch itself just modifies the limits, nothing more.</li><br>
-	<li>SMW's horizontal scrolling is instant-- that it simply takes Mario's X position, take various calculations handled at <kbd>$00F73C</kbd> (which also handles the left and right limits), unlike vertical scrolling,
-	which that is handled at <kbd>$00F88F</kbd>, horizontal scrolling <b>instantly</b> sets the screen X position within the level rather than gradually incrementing/decrementing it. So these situations should be avoided that causes
-	layer 1 graphic glitches due to not giving it frames to load the columns of 16x16 tiles:
+	<li>SMW's horizontal scrolling is instant-- that it simply takes Mario's X position, take various calculations handled at <kbd>$00F73C</kbd> (which also handles the left and right limits, to prevent scrolling left past screen 0, or the
+	last screen), unlike vertical scrolling, which that is handled at <kbd>$00F88F</kbd>, horizontal scrolling <b>instantly</b> sets the screen X position within the level rather than gradually incrementing/decrementing it. So these
+	situations should be avoided that causes layer 1 graphic glitches due to not giving it frames to load the columns of 16x16 tiles:
 		<ul>
 			<li>Teleporting the player, as in taking the player's X position (<kbd>$94</kbd>), add or subtract by some large number (greater than &plusmn;$0010) that results the player being &ldquo;teleported&rdquo; in long distances.</li><br>
 			<li>Have horizontal scrolling disabled (<kbd>$1411</kbd> set to $00), then enable horizontal scrolling while the player is outside the static camera region. This will cause the camera to jump to be centered
@@ -68,9 +68,9 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 	
 	</li><br>
 	<li>RAM address <kbd>$13F2</kbd> is no longer cleared by <kbd>$00F8A7</kbd>.</li><br>
-	<li>Anytime you want to trigger a flip-screen effect, I <b>highly</b> recommend setting <kbd>$1411</kbd> and/or <kbd>$1412</kbd> to zero (disable horizontal and/or vertical scrolling). Even though uberasm tool already
-	STZs it, if you don't disable horizontal and/or scrolling and your code is executed, then runs <kbd>$00F70D</kbd> or <kbd>$00F75C</kbd>, before executing uberasm tool's gamemode 14, screen-jumping (screen changes position instantly
-	and result graphical glitches) can still occur.</li><br>
+	<li>Anytime you want to trigger a flip-screen effect (setting a RAM <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$02</kbd> or <kbd>$03</kbd>), I <b>highly</b> recommend setting <kbd>$1411</kbd> and/or <kbd>$1412</kbd> to zero
+	(disable horizontal and/or vertical scrolling). Even though uberasm tool already STZs it, if you don't disable horizontal and/or scrolling and your code is executed, then runs <kbd>$00F70D</kbd> or <kbd>$00F75C</kbd>, before
+	executing uberasm tool's gamemode 14, screen-jumping (screen changes position instantly and result graphical glitches) can still occur.</li><br>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go outside the level. Autoscroll generators have done this
 	so that the player cannot move the screen as they wish.</li><br>
 	<li>When the screen is at the bottommost of the level (with LM's &ldquo;Allow viewing full bottom row of tiles&rdquo; being checked in the &ldquo;Change Properties in Header&rdquo; dialog.), the screen's Y position is showing 1 pixel row
@@ -109,7 +109,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code</p>
 <h2><a href="#InterestingFacts_Back" id="InterestingFacts">^</a>Interesting facts</h2>
 <ul>
 	<li>When horizontal and/or vertical scrolling are disabled (<kbd>$1411</kbd> and/or <kbd>$1412</kbd>), the boundaries (left or right for horizontal, top and bottom for vertical) are no longer running (it will not set the XY coordinate of
-	the screen to place it back in bounds).</li><br>
+	the screen to place it back in bounds), not just the player being able to move the screen.</li><br>
 </ul>
 <h2><a href="#Installation_Back" id="Installation">^</a>Installation</h2>
 	<ol>
@@ -275,17 +275,17 @@ main:
 	RTL
 WriteTableAddress:
 	LDA.b #ScreenBoundsXPositions : STA $00			;\Border attributes, from the table
-	LDA.b #ScreenBoundsXPositions>>8 : STA $01		;|
-	LDA.b #ScreenBoundsXPositions>>16 : STA $02		;|
+	LDA.b #ScreenBoundsXPositions&gt;&gt;8 : STA $01		;|
+	LDA.b #ScreenBoundsXPositions&gt;&gt;16 : STA $02		;|
 	LDA.b #ScreenBoundsYPositions : STA $03			;|
-	LDA.b #ScreenBoundsYPositions>>8 : STA $04		;|
-	LDA.b #ScreenBoundsYPositions>>16 : STA $05		;|
+	LDA.b #ScreenBoundsYPositions&gt;&gt;8 : STA $04		;|
+	LDA.b #ScreenBoundsYPositions&gt;&gt;16 : STA $05		;|
 	LDA.b #ScreenBoundsWidths : STA $06			;|
-	LDA.b #ScreenBoundsWidths>>8 : STA $07			;|
-	LDA.b #ScreenBoundsWidths>>16 : STA $08			;|
+	LDA.b #ScreenBoundsWidths&gt;&gt;8 : STA $07			;|
+	LDA.b #ScreenBoundsWidths&gt;&gt;16 : STA $08			;|
 	LDA.b #ScreenBoundsHeights : STA $09			;|
-	LDA.b #ScreenBoundsHeights>>8 : STA $0A			;|
-	LDA.b #ScreenBoundsHeights>>16 : STA $0B		;/
+	LDA.b #ScreenBoundsHeights&gt;&gt;8 : STA $0A			;|
+	LDA.b #ScreenBoundsHeights&gt;&gt;16 : STA $0B		;/
 	LDA.b #(ScreenBoundsYPositions-ScreenBoundsXPositions)-2 : STA $0C : STZ $0D	;>Size of the table, minus 2
 	RTL
 
