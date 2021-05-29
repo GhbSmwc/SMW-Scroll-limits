@@ -1,5 +1,5 @@
 ;This mimics the “single screen” uberasm code that was made before this: https://www.smwcentral.net/?p=section&a=details&id=22371
-;However because the screen isn't a perfect square (256x224), and this ASM treats each zone as 256x256, the screen will scroll within 2 blocks
+;However because the screen isn't a perfect square (256x224), and this ASM treats each zone as 256x256, the screen will scroll vertically within 2 blocks
 ;in each zone vertically.
 ;
 ;Obviously, this is less-customizable than "test_CustomBorders.asm" since each zone have the same attributes, and moves on a grid of 256x256.
@@ -7,6 +7,9 @@
 ;If you don't know where the scroll borders are at, goto LM's menu bar of the level using this ASM, on View -> “sub-screen boundaries” or hit F2.
 ;The green borders will be aligned with this ASM's borders (except not always the bottom, since the height of the level is not always a multiple
 ;of 256 pixels depending on the level dimensions).
+;
+;Note: It is possible to cause the screen to scroll diagonally, if Mario hits the corner so that his next frame XY position is on the diagonal
+;screen from his current.
 ;
 ;Why did I made this? Well, that one clears $9D every frame during non-transition, which is bad, and another reason is merging similar ASM stuff into one
 ;to reuse RAM (incorporate together).

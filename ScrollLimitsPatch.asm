@@ -174,12 +174,13 @@
 				STA $1A
 				...NotExceedingRight
 			..FailSafe
-				LDA $0000
+				LDA #$0000
 				CMP $1A
 				BMI ...NotExceedingLeft
 				STA $1A
 				...NotExceedingLeft
-				CMP $0100
+				LDA #$0100
+				CMP $1A
 				BPL ...NotExceedingRight
 				STA $1A
 				...NotExceedingRight
