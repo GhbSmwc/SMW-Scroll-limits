@@ -496,4 +496,15 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 		
 		<li>If you have set the custom borders to extend outside the level boundaries, don't worry, both the main patch <kbd>ScrollLimitsPatch.asm</kbd> and uberasm tool code <kbd>library/LibraryScrollLimits.asm</kbd> have
 		a failsafe measure to prevent the screen and the scrolling destination position from leaving the level, regardless the RAM defined in <kbd>!Freeram_ScrollLimitsFlag</kbd> being nonzero or not.</li><br>
+		
+		<li>
+			Because the XY position and width/heights are in units of pixels, you are not restricted to have these zones aligned with the 16x16 block grid. For example: you can have borders that are half-block position so
+			that a 1-block thin wall can be visible in both zones. There the formula can be changed to this to get the <i>pixel</i> offset of the block:
+			<ul>
+			<li><kbd>XYPos = (LM_CoordinateXY*16)+BlockPixelOffset</kbd></li>
+			<li><kbd>WidthOrHeights = ((LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16)+BlockPixelOffset</kbd></li>
+			</ul><br>
+			Where <kbd>BlockPixelOffset</kbd> refers to how many pixels within a block rightwards or downwards, ranging <kbd>0-15</kbd> (hex: <kbd>$00-$0F</kbd>). In the mentioned example,
+			a half-block is 8 pixels.
+		</li>
 	</ul>
