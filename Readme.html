@@ -35,7 +35,7 @@
 	<ul>
 		<li>Making sure the camera focuses on the playable area and not potentially in the ground/ceiling/wall, especially 1-screen sections.</li><br>
 		<li>Re-use levels without the camera to be able to suspiciously scroll outside the &ldquo;sub-room&rdquo;</li><br>
-		<li>Hidden secret behind the walls. Hacks like <i>The Second Reality Project Reloaded</i> and <i>New Super Mario World 2: Around The World</i> have a tendency that in some rooms, on the far-right (or left)
+		<li>Hidden secret behind the walls without suspicious camera scrolling. Hacks like <i>The Second Reality Project Reloaded</i> and <i>New Super Mario World 2: Around The World</i> have a tendency that in some rooms, on the far-right (or left)
 		of the area, if the camera scrolls further into the wall than it should, then there is a chance there is an hidden opening.</li><br>
 		<li>Hide cutoffs, if they're areas in your levels that are out-of-bounds, you don't need to place decoration tiles there to prevent cutoff, if the screen cannot go there.</li><br>
 		<li>Custom bottomless pits heights. Which gives the feeling to the player that they are essentially at the bottom of the level.</li><br>
@@ -88,6 +88,44 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code.</p>
 	<b>beyond</b> the bottom of the level (for example: with the level dimension setting (horizontal level mode) set to <kbd>08: Level Height=02A tiles, Max H-Screens=15</kbd>), and have the camera position at <kbd>Y=$01C0</kbd>, you can see
 	last row of pixels at the bottom of the screen showing the top pixels of garbage/unloaded blocks. It seems that the screen display seems to be 1 pixel lower than the values presented in the SNES register $210E/RAM $1C/RAM $1464. The easy fix
 	is to simply move the custom border 1 pixel up (in this example, the Y position of the screen should be <kbd>$01BF</kbd>).</li><br>
+	<li>Since this utilizes the <a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a> patch, you have to:
+	<ul>
+		<li>Prevent the player from going outside the level, such as using blocks or toggling the RAM so that the borders are active when the player is too far to the left or right, along with enabling bottomless pits.</li><br>
+		<li>Toggle the RAM if you want certain areas to feature bottomless pits (that would kill the player, teleport using <a href="https://www.smwcentral.net/?p=section&a=details&id=20011">Teleport By Falling Off Screen</a>) and/or other effects
+		related to using the bottomless pits.</li><br>
+	</ul>
+	You can easily have blocks that would set/clear the RAM <kbd>!Freeram_DisableBarrier</kbd>. Shouldn't be hard:
+<table><tr><td><pre>!Freeram_DisableBarrier = $60 ;&gt;Change this to some other RAM!
+
+db $37
+JMP MarioBelow : JMP MarioAbove : JMP MarioSide
+JMP SpriteV : JMP SpriteH : JMP MarioCape : JMP MarioFireball
+JMP TopCorner : JMP BodyInside : JMP HeadInside
+; JMP WallFeet : JMP WallBody ; when using db $37
+
+MarioBelow:
+MarioAbove:
+MarioSide:
+TopCorner:
+BodyInside:
+HeadInside:
+WallFeet:
+WallBody:
+	LDA #$01			;&gt;#$00 = borders enabled, #$01 = no borders
+	STA !Freeram_DisableBarrier
+SpriteV:
+SpriteH:
+MarioCape:
+MarioFireball:
+	RTL
+
+print "Disables the solid screen barrier"</pre></td></tr></table>
+
+
+	
+	Although I could copy the way how <a href="https://www.smwcentral.net/?p=section&a=details&id=22371">Single screen</a> merely turns off the left and right border, I would like it so that it have a low chance of future hijack conflicts in your hack.
+	They both (Disable Screen Barrier and Single screen) hijack at <kbd>$00E98C</kbd>. I also cautioned the use of <a href="https://www.smwcentral.net/?p=section&a=details&id=13147">pit fix patch</a> if set too high (or close if the player
+	falls down fast enough), the player could trigger the bottomless pit as the screen attempts to scroll downwards (the bottomless pit is actually the bottom of the screen, not always the level).</li><br>
 </ul>
 <h2><a href="#WhatYouNeed_Back" id="WhatYouNeed">^</a>What you need</h2>
 <ul>
