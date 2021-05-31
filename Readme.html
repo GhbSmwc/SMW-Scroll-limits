@@ -88,7 +88,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code.</p>
 	<b>beyond</b> the bottom of the level (for example: with the level dimension setting (horizontal level mode) set to <kbd>08: Level Height=02A tiles, Max H-Screens=15</kbd>), and have the camera position at <kbd>Y=$01C0</kbd>, you can see
 	last row of pixels at the bottom of the screen showing the top pixels of garbage/unloaded blocks. It seems that the screen display seems to be 1 pixel lower than the values presented in the SNES register $210E/RAM $1C/RAM $1464. The easy fix
 	is to simply move the custom border 1 pixel up (in this example, the Y position of the screen should be <kbd>$01BF</kbd>).</li><br>
-	<li>Since this utilizes the <a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a> patch, you have to:
+	<li><span id="BlockEnableDisableSolidBorders">Since this utilizes the <a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a> patch, you have to</span>:
 	<ul>
 		<li>Prevent the player from going outside the level, such as using blocks or toggling the RAM so that the borders are active when the player is too far to the left or right, along with enabling bottomless pits.</li><br>
 		<li>Toggle the RAM if you want certain areas to feature bottomless pits (that would kill the player, teleport using <a href="https://www.smwcentral.net/?p=section&a=details&id=20011">Teleport By Falling Off Screen</a>) and/or other effects
@@ -132,8 +132,11 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=13675">Sprite scroll fix</a>: SMW's system to check which scroll direction sprites should be able to spawn (<kbd>$55</kbd>/<kbd>$56</kbd>) is flawed, that it
 	check which side the player is located relative to the &ldquo;static camera region&rdquo; (<kbd>$142A</kbd>), rather than the actual scrolling of the screen. This bug only happens if you &ldquo;manually&rdquo; scroll the screen,
 	common method is by setting <kbd>$1411</kbd> to zero and incrementing/decrementing <kbd>$1462</kbd>, can cause sprites to spawn on the side of the screen that the screen is moving away from rather than towards, and failing to spawn.</li><br>
-	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a>: Useful if you want such triggers that would trigger the flip-screen effect by touching the very edges of the screen, and also
-	prevent potential deaths caused by being at those edges of the screen.</li><br>
+	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a>: This is needed for the flip screen effect, because Mario have to be at the <i>very edge</i> of the left and right side of the screen
+	to trigger it (left border would set Mario's position at <kbd>X=$0008</kbd>, and right border would be set to <kbd>X=$00E8</kbd>, relative to the screen, which prevents the player from being able to trigger the effect).</li><br>
+	<ul>
+		<li>This also means if you wanted bottomless pits in some areas in your level, have blocks that would do <a href="#BlockEnableDisableSolidBorders">as previously mentioned</a></li>
+	</ul>
 	<li>
 		ASM knowledge, if you're using other scrolling-related patches (like my previously mentioned &ldquo;center scroll&rdquo; patch), then there is a chance you'll have to modify them (and/or merge them if the hijacks overlap), especially if those patches have code that sets the scrolling limit itself:
 		<ul>
@@ -450,7 +453,7 @@ WriteTableAddress:
 		dw ($000A-$0005)*16		;&gt;$00
 		dw ($000A-$0005)*16		;&gt;$01</pre></td></tr></table>
 		</li><br>
-		<li>And now you are done.</li><br>
+		<li>And now you are done. Really wish there is some way to have overlay to display the borders in LM, like how custom sprites did.</li><br>
 	</ol>
 	<h4><a href="#NoteUsingInLevel_Back" id="NoteUsingInLevel">^</a>Note using in a level</h2>
 	<ul>
