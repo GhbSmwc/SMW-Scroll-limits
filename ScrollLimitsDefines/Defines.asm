@@ -1,4 +1,29 @@
-;Freeram
+;Don't touch
+	;Sa-1 check
+	if defined("sa1") == 0
+		!dp = $0000
+		!addr = $0000
+		!bank = $800000
+		!sa1 = 0
+		!gsu = 0
+		
+		if read1($00FFD6) == $15
+			sfxrom
+			!dp = $6000
+			!addr = !dp
+			!bank = $000000
+			!gsu = 1
+		elseif read1($00FFD5) == $23
+			sa1rom
+			!dp = $3000
+			!addr = $6000
+			!bank = $000000
+			!sa1 = 1
+		endif
+	endif
+
+;Freera
+;If you have trouble tracking your used RAM to avoid conflicts, look for “[address tracker]”.
  ;[1 byte] Flag of scroll limits:
  ;$00 = Off (scroll within the main level limits)
  ;$01 = On
@@ -122,3 +147,33 @@
   !Setting_ScrollLimits_FlipScreenSpeed = $60
  ;Y position of a point the screen tries to center with the player vertically
   !Setting_ScrollLimits_PlayerYCenter = $0070
+ ;[address tracker] Display RAM usage in console window (formatted and compatible with the address
+ ;tracker JS tool I made: https://www.smwcentral.net/?p=section&a=details&id=26516 )
+ ;Note:
+ ; -you'll have to pad the bank byte yourself
+ ; -The text on the console window does not allow the tab character, but you can make it output a text file with the tab
+ ;  characters using the batch and/or command prompt. Syntax in doing so is by 2 ways using this string:
+ ;   [path to asar.exe] [path to this define file] [path to game file] >> [path of output file]
+ ;  -The methods:
+ ;   -Command prompt: Just put the whole thing in there.
+ ;   -Batch file: create a txt file, rename it InsertNameHere.bat (make sure your file explorer lets you edit the extension), with the syntax previously
+ ;    mentioned.
+ ;  use quotes if you have spaces in filename.
+  !Setting_ScrollLimits_ShowRAMUsage = 0
+;Print command (don't touch unless you know what you're doing) [address tracker]
+	if !Setting_ScrollLimits_ShowRAMUsage != 0
+		print "RAM usage:"
+		print hex(!Freeram_ScrollLimitsFlag), "	1	Freeram_ScrollLimitsFlag"
+		print hex(!Freeram_ScrollLimitsBoxXPosition), "	2	Freeram_ScrollLimitsBoxXPosition"
+		print hex(!Freeram_ScrollLimitsBoxYPosition), "	2	Freeram_ScrollLimitsBoxYPosition"
+		print hex(!Freeram_ScrollLimitsAreaWidth), "	2	Freeram_ScrollLimitsAreaWidth"
+		print hex(!Freeram_ScrollLimitsAreaHeight), "	2	Freeram_ScrollLimitsAreaHeight"
+		print hex(!Freeram_FlipScreenXDestination), "	2	Freeram_FlipScreenXDestination"
+		print hex(!Freeram_FlipScreenYDestination), "	2	Freeram_FlipScreenYDestination"
+		print hex(!Freeram_FlipScreenXYSpeedAndFraction), "	4	Freeram_FlipScreenXYSpeedAndFraction"
+		print hex(!Freeram_FlipScreenAreaIdentifier), "	1	Freeram_FlipScreenAreaIdentifier"
+		print hex(!Freeram_FlipScreenAreaIdentifierPrev), "	1	Freeram_FlipScreenAreaIdentifierPrev"
+		print hex(!Scratchram_MarioCenterXPos), "	2	Scratch RAM"
+		print hex(!Scratchram_MarioCenterYPos), "	2	Scratch RAM"
+		print hex(!Freeram_DisableBarrier), "	1	Freeram_DisableBarrier (disables the barrier preventing player from leaving the screen)."
+	endif

@@ -61,7 +61,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code.</p>
 		<li><a href="#NoteUsingInLevel" id="NoteUsingInLevel_Back">Note using in a level</a></li>
 	</ul>
 </ul>
-
+<hr>
 <h2><a href="#NoteBeforeUse_Back" id="NoteBeforeUse">^</a>Note before use</h2>
 <ul>
 	<li>The patch (<kbd>ScrollLimitsPatch.asm</kbd>) obviously will hijack scrolling related codes (<kbd>$00F73C</kbd> (horizontal level limits for left and right borders), <kbd>$00F893</kbd>
@@ -127,6 +127,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 	They both (Disable Screen Barrier and Single screen) hijack at <kbd>$00E98C</kbd>. I also cautioned the use of <a href="https://www.smwcentral.net/?p=section&a=details&id=13147">pit fix patch</a> if set too high (or close if the player
 	falls down fast enough), the player could trigger the bottomless pit as the screen attempts to scroll downwards (the bottomless pit is actually the bottom of the screen, not always the level).</li><br>
 </ul>
+<hr>
 <h2><a href="#WhatYouNeed_Back" id="WhatYouNeed">^</a>What you need</h2>
 <ul>
 	<li><a href="https://www.smwcentral.net/?p=section&a=details&id=13675">Sprite scroll fix</a>: SMW's system to check which scroll direction sprites should be able to spawn (<kbd>$55</kbd>/<kbd>$56</kbd>) is flawed, that it
@@ -157,12 +158,21 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 </ul>
 <h3>Recommended</h3>
 <ul>
+	
+	<li>
+		<a href="https://www.smwcentral.net/?p=section&a=details&id=26516">Address tracker</a>, The scroll limits resource here does eat up quite handful of bytes, use that along with the defines
+		file (<kbd>ScrollLimitsDefines/Defines.asm</kbd> where it mentions &ldquo;<kbd>[address tracker]</kbd>&rdquo;) if you have trouble with managing your RAM.
+	</li>
 </ul>
+<ul>
+</ul>
+<hr>
 <h2><a href="#InterestingFacts_Back" id="InterestingFacts">^</a>Interesting facts</h2>
 <ul>
 	<li>When horizontal and/or vertical scrolling are disabled (<kbd>$1411</kbd> and/or <kbd>$1412</kbd>), the boundaries (left or right for horizontal, top and bottom for vertical) are no longer running (it will not set the XY coordinate of
 	the screen to place it back in bounds), not just the player being able to move the screen.</li><br>
 </ul>
+<hr>
 <h2><a href="#Installation_Back" id="Installation">^</a>Installation</h2>
 	<ol>
 		<li>Defines</li><br>
@@ -184,6 +194,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 			<li>Run the tool</li><br>
 		</ol>
 	</ol>
+<hr>
 <h2><a href="#LevelUsage_Back" id="LevelUsage">^</a>How to use them in a level</h2>
 	<p>
 		This is pretty easy, we need these types of information for its effects to apply:
@@ -297,12 +308,13 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 	<p>
 		Now note: If you have layer 2 suddenly jumping when the level load has finished, see <a href="#Layer2JumpAfterLoad">this information</a>
 	</p>
+<hr>
 <h2><a href="#FlipScreenEffect_Back" id="FlipScreenEffect">^</a>How to have a flip-screen effect in a level</h2>
 <p>This is the same as above, but we are dealing with <b>multiple borders</b> instead of one. The code checks Mario's position every frame if he's in one of these
 zones, and if it detects a change between zones, perform a scrolling to the zone he's newly in (If Mario is in neither, treat as if the player didn't switch zones).</p>
 	<ol>
 		<li>You want to have a code and table like this (and feel free to use it as a template, other examples are found in <kbd>UberasmTool/level</kbd>). This is an
-		example taken from <kbd>test_CustomBorders.asm</kbd>. There are many variations of this, like the other example mimicking &ldquo;<a href="https://www.smwcentral.net/?p=section&a=details&id=22371">single screen</a>&rdquo.
+		example taken from <kbd>test_CustomBorders.asm</kbd>. There are many variations of this, like the other example mimicking &ldquo;<a href="https://www.smwcentral.net/?p=section&a=details&id=22371">single screen</a>&rdquo;.
 		Keep in mind that to keep this tutorial from being superfluously long, I'll only include <kbd>test_CustomBorders.asm</kbd>.
 <table><tr><td><pre>load:
 	LDA #$02						;&gt;Nonzero value
@@ -455,6 +467,7 @@ WriteTableAddress:
 		</li><br>
 		<li>And now you are done. Really wish there is some way to have overlay to display the borders in LM, like how custom sprites did.</li><br>
 	</ol>
+<hr>
 	<h4><a href="#NoteUsingInLevel_Back" id="NoteUsingInLevel">^</a>Note using in a level</h2>
 	<ul>
 		<li>If the areas overlap, and the player is in that area, whatever last on the table list the player is in will take precedence and overrides any borders before it on the table, as the routine, like most codes uses a
