@@ -558,7 +558,11 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 			a half-block is 8 pixels.
 		</li>
 		<li>Be careful not to have a very large number of zones for the flip screen effect with custom borders (<kbd>test_CustomBorders.asm</kbd>), since this code runs <i>every frame</i>
-		checking each zone the player may be in, which can cause slowdowns.<br><br>
+		checking/searching each zone the player may be in, which can cause slowdowns.<br><br>
+		
+		Also note that since the RAM that identify which borders the player is in (<kbd>!Freeram_FlipScreenAreaIdentifier</kbd>) is 1 byte/8-bit,
+		only up to 256 zones per level can be allowed, unless you edit the code to add a condition (example: if the player is on the right-half of the level) to use a <i>separate table</i> so you can reuse zone IDs (this also
+		alleviates slowdown by limiting the table searching).<br><br>
 		
 		The &ldquo;single screen&rdquo; version (<kbd>test_SingleScreen.asm</kbd>) does not rely on looping on an expandable table, rather it uses the player's center position (see label <kbd>IdentifyWhichBorder</kbd> in
 		<kbd>UberasmTool/library</kbd>), divide by 256 (and round down) on either X or Y axis, and that will be which sub-screen boundary the current screen to be in, therefore slowdowns won't occur (unless someone finds
