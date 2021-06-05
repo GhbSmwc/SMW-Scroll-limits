@@ -62,16 +62,23 @@ WriteTableAddress:
 	RTL
 
 ;Scroll limit box attributes, each index is each screen area.
-;Make sure the number of values all matches!
+;Make sure the number of values in each table all matches!
 ;
-;Note: If the screen can be at the bottommost of the level and with “Allow viewing full bottom row of tiles”
-;checked, it can show a row of pixels at the bottom of the screen of garbage/unloaded tiles. Therefore to avoid this, use
-;these formulas instead (it is the same, but after all calculations, it is subtracted by 1):
-;If the height is set to 0 (no room for moving the screen vertically)
-; YPos = (LM_CoordinateOfTopLeft_TopOrLeftmost_Screen*16)-1
-;If the height isn't 0:
-; Width = ((LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16)-1
-;
+;Notes:
+;-If the screen can be at the bottommost of the level and with “Allow viewing full bottom row of tiles”
+; checked, it can show a row of pixels at the bottom of the screen of garbage/unloaded tiles. Therefore to avoid this, use
+; these formulas instead (it is the same, but after all calculations, it is subtracted by 1):
+; If the height is set to 0 (no room for moving the screen vertically)
+;  YPos = (LM_CoordinateOfTopLeft_TopOrLeftmost_Screen*16)-1
+; If the height isn't 0:
+;  Width = ((LM_CoordinateOfTopLeft_BottomOrRightmost_Screen-LM_CoordinateOfTopLeft_TopOrLeftmost_Screen)*16)-1
+;-You can only have up to 256 scroll areas, numbered from 0-255.
+;-Having large number of scroll areas can cause slowdown, as every frame this loop-search the entire table.
+;--You can avoid this slowdown as well as avoid the 256-limit by having separate tables reusing area IDs
+;  (an example is if the player is on the 2nd half of the level, use only the second set of table). This
+;  effectively limits the search loop to a smaller set of values.
+;-If 2+ areas overlap, and the player is in 2+ of them, whatever is last on the table that the player is in
+; will take precedence.
 ;
 ;Easy formula to calculate where the screen should be at:
 ; LM_CoordinateOfTopLeft_TopOrLeftmost_Screen*16
