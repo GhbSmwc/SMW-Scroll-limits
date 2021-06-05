@@ -97,7 +97,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code.</p>
 		shares the hijack address.
 	</li><br>
 	<ul>
-		<li>This also means if you wanted bottomless pits in some areas in your level, have blocks that would do <a href="#BlockEnableDisableSolidBorders">as previously mentioned</a></li>
+		<li>This also means if you wanted bottomless pits in some areas in your levels, or have solid left and right borders (such as the very left and right edges of the level), you'll need to toggle the barriers, like have custom blocks that would do <a href="#BlockEnableDisableSolidBorders">this</a>.</li><br>
 	</ul>
 	<li>
 		ASM knowledge, if you're using other scrolling-related patches (like my previously mentioned &ldquo;center scroll&rdquo; patch), then there is a chance you'll have to modify them (and/or merge them if the hijacks overlap), especially if those patches have code that sets the scrolling limit itself:
@@ -545,12 +545,9 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 		
 		<li>It seems that whenever you set the screen's Y position, it appears 1 pixel lower than it should, similarly to how sprites are being displayed. Not sure why this occurs.</li><br>
 		
-		<li><span id="BlockEnableDisableSolidBorders">Since this utilizes the <a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a> patch, you have to</span>:
-			<ul>
-				<li>Prevent the player from going outside the level, such as using blocks or toggling the RAM so that the borders are active when the player is too far to the left or right, along with enabling bottomless pits.</li><br>
-				<li>Toggle the RAM if you want certain areas to feature bottomless pits (that would kill the player, teleport using <a href="https://www.smwcentral.net/?p=section&a=details&id=20011">Teleport By Falling Off Screen</a>) and/or other effects
-				related to using the bottomless pits.</li><br>
-			</ul>
+		<li>
+			<span id="BlockEnableDisableSolidBorders">You can toggle the borders controlled by the <a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a> patch, which is useful if you
+			wanted solid screen edges (such as the left and right edges of the level) and bottomless pits in some areas.</span>:
 			You can easily have blocks that would set/clear the RAM <kbd>!Freeram_DisableBarrier</kbd>. Shouldn't be hard:
 <table><tr><td><pre>!Freeram_DisableBarrier = $60 ;&gt;Change this to some other RAM!
 
@@ -581,5 +578,6 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 
 		Although I could copy the way how <a href="https://www.smwcentral.net/?p=section&a=details&id=22371">Single screen</a> merely turns off the left and right border, I would like it so that it have a low chance of future hijack conflicts in your hack.
 		They both (Disable Screen Barrier and Single screen) hijack at <kbd>$00E98C</kbd>. I also cautioned the use of <a href="https://www.smwcentral.net/?p=section&a=details&id=13147">pit fix patch</a> if set too high (or close if the player
-		falls down fast enough), the player could trigger the bottomless pit as the screen attempts to scroll downwards (the bottomless pit is actually at the bottom of the screen, not always the bottom of the level).</li><br>
+		falls down fast enough), the player could trigger the bottomless pit as the screen attempts to scroll downwards (the bottomless pit is actually at the bottom of the screen, not always the bottom of the level).
+	</li><br>
 	</ul>
