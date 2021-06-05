@@ -23,7 +23,7 @@ incsrc "../ScrollLimitsDefines/Defines.asm"
 ;; JSL LibraryScrollLimits_SetScrollBorder
 ;;Not recommended to call this twice for both gamemode 14
 ;;and level as this can cause the screen to move twice as fast
-;;and potentially other issues.
+;;and potentially cause other issues.
 ;;
 ;;This itself only do the scrolling effects to move
 ;;the screen to its destination during a transition
@@ -154,6 +154,7 @@ ClampDestinationPosition:
 	; To mimic the way how SMW's horizontal scrolling works
 	REP #$20
 	.HorizontalClamp
+		;This figures out the X position of the target to be positioned so that Mario is always within the static cam region.
 		if !Setting_ScrollLimits_UsingCenterScroll == 0
 			LDA $94
 			SEC
@@ -172,7 +173,7 @@ ClampDestinationPosition:
 			;  cause the screen to jump and show glitched graphics), MarioXPosOnStaticCam cannot be less than $0000 and more than $0018, which are the
 			;  $142C and $142E offset by +/-$000C.
 			;Therefore we are trying to solve the length of the horizontal line between Mario and the left edge of the screen:
-			; ScrnDestination = RAM_94 - (RAM_142C + MarioXPosOnStaticCam)
+			; ScrnDestination = RAM_94 - (RAM_142C + clamp(MarioXPosOnStaticCam, $0000, $000C))
 			BPL ..NotNegative	;>If PlayerXPos142C is negative, bottom this out to 0
 			..PreventSnapLeft
 				LDA #$0000
@@ -210,6 +211,7 @@ ClampDestinationPosition:
 			STA !Freeram_FlipScreenXDestination
 			...NotPassingRightBorder
 	.VerticalClamp
+		;Vertical positioning of the screen seems to be more simpler than horizontal.
 		LDA $96
 		SEC
 		SBC.w #!Setting_ScrollLimits_PlayerYCenter
@@ -336,7 +338,8 @@ CheckScreenReachDestination:
 ;;Input: X:
 ;; $00 = apply X displacement
 ;; $02 = apply Y displacement
-;;This works like $00DC4F.
+;;This works like $00DC4F, using a precision of 1/16 of a pixel for
+;;XY positions and how $7B/$7D moves the player.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DisplaceScreenSpeed:
 	LDA !Freeram_FlipScreenXYSpeedAndFraction,X

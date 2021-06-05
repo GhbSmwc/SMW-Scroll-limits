@@ -22,7 +22,7 @@
 		endif
 	endif
 
-;Freera
+;Freeram
 ;If you have trouble tracking your used RAM to avoid conflicts, look for “[address tracker]”.
  ;[1 byte] Flag of scroll limits:
  ;$00 = Off (scroll within the main level limits)
@@ -37,7 +37,8 @@
  ;[2 bytes each] Scroll boundary positions, in pixels. These RAMs themselves represents the top and left border.
  ;They also represent the position of the scroll area since these are the "origin position"
  ;of the zone. The right and bottom boundaries are actually measured as the width and height,
- ;measuring how far the screen can scroll rightwards and downwards (in units of pixels, not whole screens)
+ ;measuring how far the screen can scroll rightwards and downwards (in units of pixels, not whole screens) from
+ ;that area
   ;Left limit X position
    if !sa1 == 0
     !Freeram_ScrollLimitsBoxXPosition = $60
@@ -88,14 +89,14 @@
     !Freeram_FlipScreenYDestination = $6F64
    endif
  ;These makes the screen's scrolling during a flip effect
- ;move similar to how $7B/$7D works, as well as the fixed point
+ ;move similar to how $7B/$7D/$00DC4F works, as well as the fixed point
  ;coordinates that $13DA/$13DC works. This also enables diagonal scrolling
  ;similar to how Celeste's flip screen works, since the routine uses an aiming
  ;routine rather than a primitive 8-directional speed.
   ;[4 bytes] X and Y speed and fraction
-  ;+$00 X speed
+  ;+$00 X speed (1/16th px per frame)
   ;+$01 fraction X position
-  ;+$02 Y speed
+  ;+$02 Y speed (1/16th px per frame)
   ;+$03 fraction Y position
    if !sa1 == 0
     !Freeram_FlipScreenXYSpeedAndFraction = $0F66
@@ -143,7 +144,7 @@
  ;Are you using center scroll patch? (0 = no, 1 = yes)
   !Setting_ScrollLimits_UsingCenterScroll = 0
  ;Flip screen speed, approximately (because it uses an aiming routine)
- ;1/16th pixel per frame. Use only $01-$7F.
+ ;1/16th pixel per frame. Use only values $01-$7F.
   !Setting_ScrollLimits_FlipScreenSpeed = $60
  ;Y position of a point the screen tries to center with the player vertically
   !Setting_ScrollLimits_PlayerYCenter = $0070
@@ -155,10 +156,10 @@
  ;  characters using the batch and/or command prompt. Syntax in doing so is by 2 ways using this string:
  ;   [path to asar.exe] [path to this define file] [path to game file] >> [path of output file]
  ;  -The methods:
- ;   -Command prompt: Just put the whole thing in there.
+ ;   -Command prompt: Just put the whole previously mentioned command in there.
  ;   -Batch file: create a txt file, rename it InsertNameHere.bat (make sure your file explorer lets you edit the extension), with the syntax previously
  ;    mentioned.
- ;  use quotes if you have spaces in filename.
+ ;  use quotes if you have spaces in filename(s).
   !Setting_ScrollLimits_ShowRAMUsage = 0
 ;Print command (don't touch unless you know what you're doing) [address tracker]
 	if !Setting_ScrollLimits_ShowRAMUsage != 0

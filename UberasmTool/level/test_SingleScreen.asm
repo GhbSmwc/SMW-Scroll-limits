@@ -3,10 +3,12 @@
 ;in each zone vertically.
 ;
 ;Obviously, this is less-customizable than "test_CustomBorders.asm" since each zone have the same attributes, and moves on a grid of 256x256.
+;The good news is that since this ASM does not loop based on how many scroll areas, this should not cause slowdown, unless someone finds a bug
+;that causes a poor code optimization.
 ;
 ;If you don't know where the scroll borders are at, goto LM's menu bar of the level using this ASM, on View -> “sub-screen boundaries” or hit F2.
 ;The green borders will be aligned with this ASM's borders (except not always the bottom, since the height of the level is not always a multiple
-;of 256 pixels depending on the level dimensions).
+;of 256 pixels depending on the level dimensions, and the fact that failsafe measures are in place to prevent inadvertent screen escaping the level).
 ;
 ;Note: It is possible to cause the screen to scroll diagonally, if Mario hits the corner so that his next frame XY position is on the diagonal
 ;screen from his current.

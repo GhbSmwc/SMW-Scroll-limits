@@ -14,7 +14,7 @@ load:
 	REP #$20
 	;Stuff you may have to fiddle around so that the background does not glitch or suddenly move when the level fully loads.
 	;
-	;Using $1A-$21 does not effectively work on uberasm tool (it only moves the display), so use $1462-$1469 instead (the
+	;Using $1A-$21 does not effectively work on uberasm tool (it only moves the display), so use $1462-$1469 instead (the code
 	;takes $1462-$1469 and transfer them to $1A-$21). Reason why this happens is that $1A-$21 is the DISPLAYED position
 	;(changing these values moves the screen, but several things act as if the screen didn't move), while $1462-$1469 is
 	;the INTERACTIVE position (such as auto-scroll). You DO have to write to $1A-$21 *and* $1462-$1469 if you want to initialize
