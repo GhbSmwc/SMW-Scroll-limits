@@ -84,10 +84,7 @@ you can have &ldquo;multiple scroll stops&rdquo; without duplicate code.</p>
 	executing uberasm tool's gamemode 14, screen-jumping (screen changes position instantly and result graphical glitches) can still occur.</li><br>
 	<li>Setting <kbd>$1411</kbd> and <kbd>$1412</kbd> only disables the default scrolling (the behavior of the screen to follow the player) as well as the scrolling limit not to go outside the level. Autoscroll generators have done this
 	so that the player cannot move the screen as they wish.</li><br>
-	<li>When the screen is at the bottommost of the level (with LM's &ldquo;Allow viewing full bottom row of tiles&rdquo; being checked in the &ldquo;Change Properties in Header&rdquo; dialog.), the screen's Y position is showing 1 pixel row
-	<b>beyond</b> the bottom of the level (for example: with the level dimension setting (horizontal level mode) set to <kbd>08: Level Height=02A tiles, Max H-Screens=15</kbd>), and have the camera position at <kbd>Y=$01C0</kbd>, you can see
-	last row of pixels at the bottom of the screen showing the top pixels of garbage/unloaded blocks. It seems that the screen display seems to be 1 pixel lower than the values presented in the SNES register $210E/RAM $1C/RAM $1464. The easy fix
-	is to simply move the custom border 1 pixel up (in this example, the Y position of the screen should be <kbd>$01BF</kbd>).</li><br>
+	<li>It seems that whenever you set the screen's Y position, it appears 1 pixel lower than it should, similarly to how sprites are being displayed. Not sure why this occurs.</li><br>
 	<li><span id="BlockEnableDisableSolidBorders">Since this utilizes the <a href="https://www.smwcentral.net/?p=section&a=details&id=14978">Disable Screen Barrier via RAM</a> patch, you have to</span>:
 	<ul>
 		<li>Prevent the player from going outside the level, such as using blocks or toggling the RAM so that the borders are active when the player is too far to the left or right, along with enabling bottomless pits.</li><br>
@@ -125,7 +122,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 	
 	Although I could copy the way how <a href="https://www.smwcentral.net/?p=section&a=details&id=22371">Single screen</a> merely turns off the left and right border, I would like it so that it have a low chance of future hijack conflicts in your hack.
 	They both (Disable Screen Barrier and Single screen) hijack at <kbd>$00E98C</kbd>. I also cautioned the use of <a href="https://www.smwcentral.net/?p=section&a=details&id=13147">pit fix patch</a> if set too high (or close if the player
-	falls down fast enough), the player could trigger the bottomless pit as the screen attempts to scroll downwards (the bottomless pit is actually the bottom of the screen, not always the level).</li><br>
+	falls down fast enough), the player could trigger the bottomless pit as the screen attempts to scroll downwards (the bottomless pit is actually at the bottom of the screen, not always the bottom of the level).</li><br>
 </ul>
 <hr>
 <h2><a href="#WhatYouNeed_Back" id="WhatYouNeed">^</a>What you need</h2>
@@ -145,7 +142,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 			<li><a href="https://www.smwcentral.net/?p=section&a=details&id=14268">Ersanio's ASM tutorial</a></li>
 		</ul><br>
 		
-		Here is a hint: XY position top and left positions are <b>always</b> X/Y = <kbd>$0000</kbd>. The right and bottom limits are:
+		An easy way to find and modify its code to respect this ASM gimmick is by noting this info: XY position left and top positions are <b>always</b> X/Y = <kbd>$0000</kbd>. The right and bottom limits are:
 		<ul>
 			<li>Horizontal levels (and any dimension settings): <kbd>LastScreenXPosition = (ValueIn_RAM_5E - 1) * 256</kbd>. The bottom position is stored in scratch RAM <kbd>$04</kbd> during around <kbd>$00F810</kbd>. Unlike <kbd>$13D7</kbd>, LM have a feature with an option to enable the screen
 			to scroll down to show the last row of blocks at the very bottom of the level, on &ldquo;Change Properties in Header&rdquo;.</li><br>
@@ -178,7 +175,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 		<li>Defines</li><br>
 		<ol>
 			<li>Open <kbd>SMW-Scroll-limits/ScrollLimitsDefines/Defines.asm</kbd>, and make any necessary changes on it. There is a very high chance you'll need to do this if you have other ASM resources that uses freeram as well, as they
-			tend to &ldquo;overlap&rdquo; with the default RAMs the patch provided here uses. And yes, even the required patches <a href="#WhatYouNeed">listed on this document</a> needs to have its freeram defines changed to avoid issues.</li><br>
+			tend to &ldquo;overlap&rdquo; with the default RAMs the patch provided here uses. And yes, even the required patches <a href="#WhatYouNeed">listed on this document</a> need to have its freeram defines changed to avoid issues.</li><br>
 		</ol>
 		<li>Patches</li><br>
 		<ol>
@@ -186,12 +183,12 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 			<kbd>org $xxxxxx</kbd> would conflict. If they do, you'll need to merge them and potentially need to learn a little bit of ASM.<br><br>
 			
 			<kbd>ScrollLimitsPatch.asm</kbd> just modifies the behavior how scrolling limits work. If you say, install my &ldquo;Center Scroll&rdquo; patch, for example, edit the center scroll patch's scroll limits so that it first checks
-			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works (which means you'll need to learn about ASM).</li><br>
+			the RAM defined by <kbd>!Freeram_ScrollLimitsFlag</kbd>, and if it is nonzero, then it should do something similar how the patch provided here works (which also means you'll need to learn about ASM).</li><br>
 		</ol>
 		<li>Uberasm tool (installs the flip screen effect)</li><br>
 		<ol>
 			<li>In <kbd>SMW-Scroll-limits/UberasmTool/</kbd>, place the files in their appropriate spots in uberasm tool's files. They are conveniently named.</li><br>
-			<li>Run the tool</li><br>
+			<li>Run the tool.</li><br>
 		</ol>
 	</ol>
 <hr>
@@ -213,7 +210,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 		<li><font color="blue">blue</font> means inside the level boundaries.</li><br>
 		<li><font color="cyan">cyan</font> means the game screen.</li><br>
 		<li><font color="#800000">red</font> means the boundaries specified by the RAM the patch uses.</li><br>
-		<li><font color="orange">orange</font> means the actual scrolling stopping position for the bottom and right borders, relation to the screen's bottom and right borders.</li><br>
+		<li><font color="orange">orange</font> means the actual scrolling stopping position for the right and bottom borders, relation to the screen's right and bottom borders.</li><br>
 	</ul>
 	<h3>Scroll stopping positions info</h3>
 	<ul>
@@ -222,19 +219,18 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 		
 		Now keep in mind, almost everything have their origin position at the top-left of some kind of box, the screen is no exception:<br>
 		<img src="readme_files/LevelAndGameScreen.png"><br></li><br>
-		<li>Soo, how the right and bottom borders are placed then? Well, it takes the X/Y position, add by the value by Width/Height, in pixels (stored in
-		RAM defined as <kbd>!Freeram_ScrollLimitsAreaWidth</kbd> and <kbd>!Freeram_ScrollLimitsAreaHeight</kbd>) and that will be
-		the right and bottom borders position:<br>
+		<li>So, how are the borders are placed then? Well, the XY position (in pixels) represents the left and top limit, and the width and height (<kbd>!Freeram_ScrollLimitsAreaWidth</kbd> and
+		<kbd>!Freeram_ScrollLimitsAreaHeight</kbd>, also in pixels) represents the right and bottom limit, offset (added) from the XY position:<br>
 		<img src="readme_files/ScrollLimitsBox.png"></li><br>
-		<li>The top and left is pretty obvious on where the screen will stop at:<br>
+		<li>The left and top is pretty obvious on where the screen will stop at:<br>
 		<img src="readme_files/LeftAndTop.png"><br>
-		However, the bottom and right borders, they take the screen's origin position to limit instead of the right and bottom edge of the screen:<br>
+		However, the right and bottom borders, because they take the screen's origin position to limit instead of the right and bottom edge of the screen, the screen can extend 256 pixels to the right and 224 down:<br>
 		<img src="readme_files/RightAndBottom.png"><br>
 		</li><br>
 	</ul>
 	<h4>Setting the borders up</h4>
 	<p>
-		Lunar Magic thankfully have this feature of &ldquo;Game view screen&rdquo; (found in the menubar on <kbd>view</kbd>). Have that, along with the 16x16 block
+		Lunar Magic thankfully have this feature of &ldquo;Game view screen&rdquo; (found in the menubar on <kbd>view</kbd>, or by pressing F3). Have that, and make use of the 16x16 block
 		coordinate display at the bottom-left corner (to convert block-coordinates to pixel, simply multiply them by 16 (<kbd>$10</kbd>) (example:
 		<kbd>($0002,$0003)</kbd> in block coordinates is <kbd>($0020,$0030)</kbd> in pixel-coordinates)). Also note that LM versions before 3.03 (2019-04-01) displays the coordinates in decimal,
 		while on and after 3.03 displays them in hex.
@@ -242,7 +238,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 	<ol>
 		<li>
 			Obtain the X/Y positions by placing the screen display on LM at the top-leftmost area you want to place your limits at (make sure it is
-			aligned with block grid). Now hover your mouse on the top-leftmost block that is at the top-left of the screen. We now have the X and Y
+			aligned with block grid, it moves in the smallest step of 8x8s). Now hover your mouse on the top-leftmost block that is at the top-left of the screen. We now have the X and Y
 			position of the area. Remember that LM shows the coordinates in units of 16x16 blocks, not pixels, so to convert to pixel you multiply these by 16.
 		</li><br>
 		<li>
@@ -260,7 +256,7 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 					<kbd>LM_CoordinateOfTopLeft_BottomOrRightmost_Screen</kbd>: means the top-left of the screen at the rightmost position possible, in block-coordinates (not pixel), either X or Y position
 				</li><br>
 			</ul>
-			Thankfully assemblers allow putting a formula (such as Asar), from my testing, make sure they do not have spaces.
+			Thankfully assemblers allow putting a formula (such as Asar) instead of just a single number, from my testing, make sure they do not have spaces.
 		</li><br>
 		<li>
 			Have an ASM code using this template. This assumes you are using uberasm tool's level under load/init/main label:
@@ -293,12 +289,12 @@ print "Disables the solid screen barrier"</pre></td></tr></table>
 			Use this code during level loading is recommended.<br><br>
 			
 			Also be careful that some freeram addresses may clear during level loading, I'm not sure if uberasm tool's <kbd>load</kbd> happens after or before clearing RAM, the default RAMs here were tested and
-			does not to it seems safe. If you are unsure, check out the RAM map.<br><br>
+			did not experience any issues. If you are unsure, check out the RAM map.<br><br>
 			
-			Furthermore, if you have borders that can turn on/off, <b>both</b> ways can cause the screen to jump within bounds or jump to position so that the static camera region is on the player.<br><br>
+			Furthermore, if you have borders that can turn on/off, <b>both</b> ways can cause the screen to jump within bounds or jump to position so that the static camera region is on the player. Situations like this
+			is you have to set <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$02</kbd> (scroll to player) or <kbd>$03</kbd> (same but also freezes), don't forget to zero out <kbd>$1411</kbd> and <kbd>$1412</kbd> during that code though just in case.
+			This will cause the screen to gradually scroll to the player.<br><br>
 			
-			To avoid screen jumping, I recommend setting <kbd>!Freeram_ScrollLimitsFlag</kbd> to <kbd>$02</kbd> (screen gradually scrolls to be within bounds closest to the player) or <kbd>$03</kbd> (same as <kbd>$02</kbd>
-			but also temporally freezes the game). Don't forget to set <kbd>$1411</kbd> and <kbd>$1412</kbd> to zero just in case.
 		</li><br>
 	</ol>
 	<p>
@@ -422,7 +418,7 @@ WriteTableAddress:
 		dw ($001A-$001A)*16	;&gt;$07
 		dw ($001B-$0000)*16	;&gt;$08
 		dw ($001B-$0000)*16	;&gt;$09</pre></td></tr></table><br>
-		The tables, labeled <kbd>ScreenBoundsXPositions</kbd>, <kbd>ScreenBoundsYPositions</kbd>, <kbd>ScreenBoundsWidths</kbd>, and <kbd>ScreenBoundsHeights</kbd>, is what we need to focus on.
+		The tables, labeled <kbd>ScreenBoundsXPositions</kbd>, <kbd>ScreenBoundsYPositions</kbd>, <kbd>ScreenBoundsWidths</kbd>, and <kbd>ScreenBoundsHeights</kbd>, is what we need to focus on, they're the list of scroll zones in the level.
 		Keep in mind that each same nth item in each table are associated with each other, meaning that the first item in the tables are used together for <kbd>zone 0</kbd> (index 0), second item in tables for <kbd>zone 1</kbd> (index 1), and so on,
 		they do not use other items within them (like zone 0 uses first item in <kbd>ScreenBoundsXPositions</kbd>, second item in <kbd>ScreenBoundsYPositions</kbd>, it doesn't work like that)</li><br>
 
@@ -448,9 +444,9 @@ WriteTableAddress:
 	ScreenBoundsHeights:
 		dw ($000A-$0005)*16		;&gt;$00
 </pre></td></tr></table>
-		<kbd>zone 1</kbd>'s attribute added:<br>
+		To add <kbd>zone 1</kbd>'s attribute:<br>
 		<img src="readme_files/Tutorial_SettingUpBorders2.png"><br>
-		And the tables should be:
+		And the list table should be added from the bottom:
 <table><tr><td><pre>;Top-left positions
 	ScreenBoundsXPositions:
 		dw $000E*16		;&gt;$00
@@ -561,4 +557,10 @@ $20 or $1468 [2 bytes]: Layer 2 Y pos</pre></td></tr></table><br>
 			Where <kbd>BlockPixelOffset</kbd> refers to how many pixels within a block rightwards or downwards, ranging <kbd>0-15</kbd> (hex: <kbd>$00-$0F</kbd>). In the mentioned example,
 			a half-block is 8 pixels.
 		</li>
+		<li>Be careful not to have a very large number of zones for the flip screen effect with custom borders (<kbd>test_CustomBorders.asm</kbd>), since this code runs <i>every frame</i>
+		checking each zone the player may be in, which can cause slowdowns.<br><br>
+		
+		The &ldquo;single screen&rdquo; version does not rely on looping on an expandable table, rather it uses the player's center position (see label <kbd>IdentifyWhichBorder</kbd> in
+		<kbd>UberasmTool/library</kbd>), divide by 256 (and round down) on either X or Y axis, and that will be which sub-screen boundary the current screen to be in, therefore
+		slowdowns won't occur.</li>
 	</ul>
