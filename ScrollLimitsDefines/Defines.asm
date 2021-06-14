@@ -144,8 +144,34 @@
  ;Are you using center scroll patch? (0 = no, 1 = yes)
   !Setting_ScrollLimits_UsingCenterScroll = 0
  ;Flip screen speed, approximately (because it uses an aiming routine)
- ;1/16th pixel per frame. Use only values $01-$7F.
+ ;1/16th pixel per frame. Use only $01-$7F, $7F being the fastest.
+ ;
+ ;Be careful with faster speeds, as the screen does move by a handful of pixels,
+ ;and if that movement distance is big enough that can OVERSHOOT the destination,
+ ;the game could "softlock" oscillating and constantly overshooting it and shaking
+ ;the screen (it gets stuck). If this can happen, set
+ ;!Setting_ScrollLimits_DestinationSnapDistance to a higher number.
   !Setting_ScrollLimits_FlipScreenSpeed = $60
+ ;Destination snapping distance. When the screen gets close within this number of
+ ;distance (in pixels), will snap the screen and end the scrolling effect. Set this
+ ;to a higher number if you have a higher speed (!Setting_ScrollLimits_FlipScreenSpeed).
+ ;
+ ;To know if there are a potential risk:
+ ;-find how many pixels range:
+ ;  DestinationPixelRange = !Setting_ScrollLimits_DestinationSnapDistance * 2
+ ;-find how many pixels being traveled, potentially:
+ ;  PotentialPixelsMoved = ceiling(!Setting_ScrollLimits_FlipScreenSpeed / 16)
+ ;   ^Used the ceiling function because fractional movement of a pixel can accumulate and
+ ;    potentially add an additional pixel of movement (14/16 becomes 15/16 wouldn't move
+ ;    by a pixel, however 15/16 becoming 1 and 0/16 DOES move a pixel)
+ ;
+ ;    In case you don't know, the ceiling function rounds the number up an integer (picks
+ ;    the lowest integer >= x, like ceiling(x) when x is 5.1 to 5.9 results 6)
+ ;
+ ;And now if DestinationPixelRange is less than PotentialPixelsMoved, then it is possible
+ ;the screen could get stuck. Just be careful not to have slow speed and large snap
+ ;distance, that can cause the screen to noticeably snap to its destination position abruptly.
+  !Setting_ScrollLimits_DestinationSnapDistance = $0004
  ;Y position of a point the screen tries to center with the player vertically
   !Setting_ScrollLimits_PlayerYCenter = $0070
  ;[address tracker] Display RAM usage in console window (formatted and compatible with the address

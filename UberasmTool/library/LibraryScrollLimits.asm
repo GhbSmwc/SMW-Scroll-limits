@@ -291,7 +291,11 @@ ClampDestinationPosition:
 		RTL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Check if screen have reached destination.
-;;Check if the screen is close enough (within 4 pixels from destination).
+;;This is done by checking if the screen is close enough (within
+;;!Setting_ScrollLimits_DestinationSnapDistance pixels from destination).
+;;Reason for distance checking is to prevent overshooting at higher
+;;speeds, which can cause the screen to constantly shake and repeatedly
+;;overshooting, which softlocks the game.
 ;;Output:
 ;; Carry clear: no
 ;; Carry set: yes
@@ -310,7 +314,7 @@ CheckScreenReachDestination:
 		INC
 		
 		..Positive
-		CMP #$0004
+		CMP.w #!Setting_ScrollLimits_DestinationSnapDistance
 		BCS .Far
 		
 	.VerticalDistance
@@ -324,7 +328,7 @@ CheckScreenReachDestination:
 		INC
 		
 		..Positive
-		CMP #$0004
+		CMP.w #!Setting_ScrollLimits_DestinationSnapDistance
 		BCS .Far
 	.Close
 		SEP #$21
