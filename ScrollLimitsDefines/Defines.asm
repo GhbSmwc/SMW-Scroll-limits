@@ -57,7 +57,7 @@
   ;the screen extends by 256/224 pixels beyond here.
   ;(Example: A room width of $0000 means 256-pixel wide area)
   ;It is calculated: XY_Max_Value = XYTopOrLeft + WidthOrHeight.
-   ;Width of the area 
+   ;Width of the area
     if !sa1 == 0
      !Freeram_ScrollLimitsAreaWidth = $0F5E
     else
@@ -111,7 +111,8 @@
    !Freeram_FlipScreenAreaIdentifier = $79
   endif
  ;[1 byte] Same as above but is needed to check if the player is switching screens.
- ;If that happens, the routine "SetScrollBorder" should only execute once on every transition.
+ ;If that happens (results in these two RAMs not being equal values), the routine
+ ;"SetScrollBorder" should only execute once on every transition.
   if !sa1 == 0
    !Freeram_FlipScreenAreaIdentifierPrev = $7C
   else

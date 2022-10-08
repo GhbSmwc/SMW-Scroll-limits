@@ -643,7 +643,10 @@ Aiming:
 ;;-$09 to $0B (3 bytes): Table (each item is 2 bytes) of heights
 ;;-$0C to $0D (3 bytes): Size of the table in bytes, minus 2
 ;;Output:
-;;-!Freeram_FlipScreenAreaIdentifier: Which screen area to be in.
+;;-!Freeram_FlipScreenAreaIdentifier: An index representing which screen area
+;; the player is in. If not in any of these areas, will contain whatever last
+;; he was in (if mario is in none of these areas, will not trigger a scroll,
+;; the camera will still be in the zone he left).
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 IdentifyWhichBorder:
 	.CheckMarioIsInThoseAreas
@@ -694,7 +697,7 @@ IdentifyWhichBorder:
 					BPL ...Loop
 				....NotFound
 					SEP #$30			;\If mario is not in any of the areas listed in the tables, don't set the
-					BRA .Done			;/screen area to some weird areas.
+					BRA .Done			;/screen area to some weird areas (will be the last valid area he's in).
 				....BreakLoop
 	.Done
 		SEP #$30		;>Just in case
